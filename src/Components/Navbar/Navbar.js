@@ -1,43 +1,107 @@
+import React from "react";
+import { useState } from "react";
+import styles from "./Navbar.module.css";
 
-import React from 'react'
-
-export default function Navbar(){
-    return(
-        <>
-
-    <nav className="navbar navbar-expand-lg navbar-light bg-light">
-  <div className="container-fluid">
-    <a className="navbar-brand" href="index.html">Navbar</a>
-    <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-      <span className="navbar-toggler-icon"></span>
-    </button>
-    <div className="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-        <li className="nav-item">
-          <a className="nav-link active" aria-current="page" href="index.html">Homes</a>
-        </li>
-        <li className="nav-item">
-          <a className="nav-link" href="index.html">Link</a>
-        </li>
-        <li className="nav-item dropdown">
-          <a className="nav-link dropdown-toggle" href="index.html" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Dropdown
-          </a>
-          <ul className="dropdown-menu" aria-labelledby="navbarDropdown">
-            <li><a className="dropdown-item" href="index.html">Action</a></li>
-            <li><a className="dropdown-item" href="index.html">Another action</a></li>
-          </ul>
-        </li>
-        <li className="nav-item">
-          <a className="nav-link disabled">Disabled</a>
-        </li>
-      </ul>
-      <form className="d-flex">
-        <input className="form-control me-2" type="search" placeholder="Search" aria-label="Search"/>
-        <button className="btn btn-outline-success" type="submit">Search</button>
-      </form>
-    </div>
-  </div>
-</nav></>
-)
+export default function Navbar() {
+  {
+    /* adding the states  */
+  }
+  const [isActive, setIsActive] = useState(false);
+  {
+    /* add the active class */
+  }
+  const toggleActiveClass = () => {
+    setIsActive(!isActive);
+  };
+  {
+    /* clean up function to remove the active class */
+  }
+  const removeActive = () => {
+    setIsActive(false);
+  };
+  return (
+    <>
+      <div className="Navbar">
+        <header className="Navbar-header">
+          <nav>
+            <ul
+              className={`${styles.navMenu} ${isActive ? styles.active : ""}`}
+            >
+              <li onClick={removeActive}>
+                <a href="#home" className={`${styles.navLink}`}>
+                  Home
+                </a>
+              </li>
+              <li onClick={removeActive}>
+                <a href="#home" className={`${styles.navLink}`}>
+                  Products
+                </a>
+              </li>
+              <li onClick={removeActive}>
+                <a href="#home" className={`${styles.navLink}`}>
+                  FLCPS
+                </a>
+              </li>
+              <li onClick={removeActive}>
+                <a href="#home" className={`${styles.navLink}`}>
+                  Dispatch
+                </a>
+              </li>
+              <li onClick={removeActive}>
+                <a href="#home" className={`${styles.navLink}`}>
+                  FMEA
+                </a>
+              </li>
+            </ul>
+            <div
+              className={`${styles.hamburger} ${isActive ? styles.active : ""}`}
+              onClick={toggleActiveClass}
+            >
+              <span className={`${styles.bar}`}></span>
+              <span className={`${styles.bar}`}></span>
+              <span className={`${styles.bar}`}></span>
+            </div>
+          </nav>
+        </header>
+      </div>
+      <div className={styles.container}>
+        <div className={styles.leftbox}>
+          <button type="button" className={styles.btn}>
+            Add new product
+          </button>
+          <button type="button" className={styles.btn}>
+            Edit product
+          </button>
+        </div>
+        <div className={styles.middlebox}>
+          <button type="button" className={styles.btn}>
+            Add sub-assembly
+          </button>
+          <button type="button" className={styles.btn}>
+            Add component
+          </button>
+        </div>
+        <div className={styles.rightbox}>
+          <button type="button" className={styles.btn}>
+            View
+          </button>
+        </div>
+      </div>
+      <div className={styles.container}>
+        <div className={styles.col}>
+          <div className={styles.leftcol}>
+            <h1 className={styles.h1}>Product detail</h1>
+            </div>
+          <div className={styles.rightcol}>
+            <div>
+               <h1 className={styles.h2}>Main assembly</h1>
+            </div>
+            <div>
+               One of three columns
+             </div>
+            </div>
+        </div>
+      </div>
+    </>
+  );
 }
