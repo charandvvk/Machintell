@@ -12,6 +12,10 @@ a {
     text-decoration: none;
     color: white;
     font-size: 18px;
+    border: 1px solid rgb(20, 38, 54);
+    border-radius: 7px;
+    padding-left: 6px;
+    padding-right: 6px;
  }
   
   /* navbar */
@@ -41,6 +45,11 @@ a {
     gap: 60px;
     background-color: rgb(20, 38, 54);
     line-height: 40px;
+}
+.navMenu li :hover{
+    color: #00153E;
+      background-color: white;
+    border: 3px solid white;
 }
   
   /* media queries */
@@ -90,103 +99,13 @@ a {
       padding: 10px;
     }
   
-    .navMenu.active{
-      left: 0;
+    .active{
+      color: #00153E;
+      background-color: white;
+      border: 3px solid white;
     }
   
     .navMenu li {
       margin: 16px 0;
     }
-  }
-.container{
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-}
-.leftbox {
-    display: flex;
-    /* float: left; */
-    /* background: white; */
-    width: 33%;
-    height: 170px;
-    border-right: 1px solid #00153E;
-    justify-content: center;
-    align-items: center;
-}
-
-.middlebox {
-    display: flex;
-    /* float: left; */
-    /* background: white; */
-    width: 34%;
-    height: 170px;
-    border-left:1px solid #00153E;
-    border-right:1px solid #00153E;
-    align-items: center;
-    justify-content: center;
-
-}
-
-.rightbox {
-    display: flex;
-    /* float: right; */
-    align-items: center;
-    /* background: white; */
-    width: 33%;
-    height: 170px;
-    border-left: 1px solid #00153E;
-    justify-content: center;
-
-}
-.btn{
-    align-items: center;
-    width: 100%;
-    margin: 3px;
-    padding: 2px;
-
-
-}
-.col{
-    margin: 0%;
-    padding: 0%;
-    width: 100%;
-
-
-}
-.leftcol{
-    float: left;
-    /* background: white; */
-    width: 25%;
-    height: 468px;
-    /* border-left:1px solid #00153E; */
-    border-right:1px solid #00153E;
-    justify-content: center;
-}
-.h1{
-    display: flex;
-    justify-content: center;
-    background-color: #00153E;
-    color: white;
-    line-height: 40px;
-    font-size: 18px;
-}
-.rightcol{
-    display: flex;
-    /* background: white; */
-    width: 75%;
-    height: 468px;
-    background: grey;
-    /* border-left:1px solid #00153E; */
-    border-right:1px solid #00153E;
-    justify-content: center;
-}
-.h2{
-    
-    display: flex;
-    justify-content: flex-start;
-    background-color: #00153E;
-    color: white;
-    height: 40px;
-    line-height: 40px;
-    font-size: 18px;
 }
