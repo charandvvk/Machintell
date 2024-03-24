@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import styles from "./product/product.module.css";
-import EditProduct from './editProduct'
+import styles from "./product.module.css";
 import NewProduct from "./newProduct/newProduct";
 import SubAssembly from "./subAssembly/subAssembly";
-import Components from "./components/components";
+import EditProduct from "./editProduct/EditProduct";
+import Components from "./components/component";
 
 const Product = () => {
     const [form,setForm]=useState("");
