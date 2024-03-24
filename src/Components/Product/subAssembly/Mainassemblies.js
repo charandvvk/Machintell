@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
-import SubAssembly from './subAssembly';
+import React, { useState } from "react";
+import styles from "../product.module.css";
 
 function Mainassemblies({}) {
-  const [SubAssembly, setSubAssemblyName] = useState('');
+  const [SubAssembly, setSubAssemblyName] = useState("");
   const [secondaryFunctions, setSecondaryFunctions] = useState([]); // State to store secondary functions
   const [selectedRows, setSelectedRows] = useState([]); // State to store selected row indices
-  const [form, setForm] = useState('')
+  const [form, setForm] = useState("");
 
-  const handleSubAssemblyNameChange =(event) =>{
+  const handleSubAssemblyNameChange = (event) => {
     setSubAssemblyName(event.target.value);
-  }
+  };
 
   const handleAddSecondary = () => {
-    setSecondaryFunctions([...secondaryFunctions,'']); // Add a new empty secondary function to the state
+    setSecondaryFunctions([...secondaryFunctions, ""]); // Add a new empty secondary function to the state
   };
 
   const handleSecondaryFunctionChange = (index, value) => {
@@ -22,12 +22,14 @@ function Mainassemblies({}) {
   };
 
   const handleSave = () => {
-    console.log(SubAssembly,secondaryFunctions);
-    setForm('MainFunction')
+    console.log(SubAssembly, secondaryFunctions);
+    setForm("MainFunction");
   };
 
   const handleDelete = () => {
-    const updatedSecondaryFunctions = secondaryFunctions.filter((_, index) => !selectedRows.includes(index));
+    const updatedSecondaryFunctions = secondaryFunctions.filter(
+      (_, index) => !selectedRows.includes(index)
+    );
     setSecondaryFunctions(updatedSecondaryFunctions);
     setSelectedRows([]);
   };
@@ -48,88 +50,93 @@ function Mainassemblies({}) {
   };
 
   return (
-    <div aria-label="SubAssemblyAdded">
-      {form === 'MainFunction' ? (
-        <Mainassemblies/>
-      ):(
+    <div aria-label="SubAssemblyAdded" className={styles.form}>
+      {form === "MainFunction" ? (
+        <Mainassemblies />
+      ) : (
         <div>
-          <table style={{ borderCollapse: 'collapse', width: '100%' }}>
-          <thead>
-            <tr>
-              <th style={styles.th}>Name of sub-assembly</th>
-              <td style={styles.td}>Front_wheel</td>
-            </tr>
-            <tr>
-              <th style={styles.th}>sub-assembly ID</th>
-              <td style={styles.td}>BI1xxxxABC</td>
-            </tr>
-            <tr>
-              <th style={styles.th}>File location</th>
-              <td style={styles.td}>BI1xxxxABC</td>
-            </tr>
-            <tr>
-              <th style={styles.th}>Is it completely bought up</th>
-              <td style={styles.td}>No</td>
-            </tr>
-            <tr>
-              <th style={styles.th}>Do you wish to add its subassemblies/components information?</th>
-              <td style={styles.td}>Yes</td>
-            </tr>
-            <tr>
-              <th style={styles.th}>Main Functions (string)</th>
-              <td style={styles.td}>
-                <input
-                  type="text"
-                  value={SubAssembly}
-                  onChange={handleSubAssemblyNameChange}
-                />
-              </td>
-            </tr>
-            <tr>
-              <th style={styles.th} colSpan="2">Add secondary function</th>
-            </tr>
-          </thead>
-          <tbody>
-            {secondaryFunctions.map((secondaryFunction, index) => (
-              <tr key={index} style={{ backgroundColor: isRowSelected(index) ? 'lightgray' : 'white' }} onClick={() => toggleRowSelection(index)}>
-                <th style={styles.th}>Secondary function {index + 1}</th>
-                <td style={styles.td}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th className={styles.th}>Name of sub-assembly</th>
+                <td className={styles.td}>Front_wheel</td>
+              </tr>
+              <tr>
+                <th className={styles.th}>sub-assembly ID</th>
+                <td className={styles.td}>BI1xxxxABC</td>
+              </tr>
+              <tr>
+                <th className={styles.th}>File location</th>
+                <td className={styles.td}>BI1xxxxABC</td>
+              </tr>
+              <tr>
+                <th className={styles.th}>Is it completely bought up</th>
+                <td className={styles.td}>No</td>
+              </tr>
+              <tr>
+                <th className={styles.th}>
+                  Do you wish to add its subassemblies/components information?
+                </th>
+                <td className={styles.td}>Yes</td>
+              </tr>
+              <tr>
+                <th className={styles.th}>Main Functions </th>
+                <td className={styles.td}>
                   <input
                     type="text"
-                    value={secondaryFunction}
-                    onChange={(event) => handleSecondaryFunctionChange(index, event.target.value)}
+                    value={SubAssembly}
+                    onChange={handleSubAssemblyNameChange}
                   />
                 </td>
               </tr>
-            ))}
-          </tbody>
-        </table>
-        <div>
-          <button onClick={handleAddSecondary}>Add Secondary Function</button>
+              <tr>
+                <th className={styles.th}>Add secondary function</th>
+              </tr>
+            </thead>
+            <tbody>
+              {secondaryFunctions.map((secondaryFunction, index) => (
+                <tr
+                  key={index}
+                  style={{
+                    backgroundColor: isRowSelected(index)
+                      ? "lightgray"
+                      : "white",
+                  }}
+                  onClick={() => toggleRowSelection(index)}
+                >
+                  <th className={styles.th}>Secondary function {index + 1}</th>
+                  <td className={styles.td}>
+                    <input
+                      type="text"
+                      value={secondaryFunction}
+                      onChange={(event) =>
+                        handleSecondaryFunctionChange(index, event.target.value)
+                      }
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div>
+            <button className={styles.btn2} onClick={handleAddSecondary}>
+              Add Secondary Function
+            </button>
+          </div>
+          <div>
+            <button className={styles.btn2} onClick={handleDelete}>
+              Delete Secondary Function
+            </button>
+          </div>
+          <div>
+            <button className={styles.btn2} type="button" onClick={handleSave}>
+              Save
+            </button>
+          </div>
         </div>
-        <div>
-          <button onClick={handleDelete}>Delete Secondary Function</button>
-        </div>
-        <div>
-          <button type="button" onClick={handleSave}>Save</button>
-        </div>
-        </div>
-        )}
+      )}
     </div>
   );
 }
-
-const styles = {
-  th: {
-    border: '1px solid #dddddd',
-    textAlign: 'left',
-    padding: '8px',
-  },
-  td: {
-    border: '1px solid #dddddd',
-    textAlign: 'left',
-    padding: '8px',
-  },
-};
 
 export default Mainassemblies;
