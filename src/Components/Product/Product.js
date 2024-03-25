@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import styles from "./product.module.css";
-import NewProduct from "./newProduct/newProduct";
+import AddNewProduct from "./newProduct/AddNewProduct";
 import SubAssembly from "./subAssembly/subAssembly";
 import EditProduct from "./editProduct/EditProduct";
 import Components from "./components/component";
@@ -12,8 +12,8 @@ const Product = () => {
         setForm(formType)
     }
     function displayForm(){
-        if(form==="newProduct")
-        return <NewProduct/>
+        if(form==="Product Form")
+        return <AddNewProduct/>
         else if (form==="editProduct")
         return <EditProduct/>
         else if(form==="subAssembly")

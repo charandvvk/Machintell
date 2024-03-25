@@ -18,40 +18,40 @@ const SubAssembly = () => {
   const handleSave = () => {
     // validation();
 
-    if (validation() === 'true'){
-      console.log('Saving data...',SubAssemblyName, fileLocation);
-      setForm('subAssemblyAdded'); // Set the form state to 'subassemblyAdded' to display SubAssembly Details
-    }
-    else{
+    if (validation() === "true") {
+      console.log("Saving data...", SubAssemblyName, fileLocation);
+      setForm("subAssemblyAdded"); // Set the form state to 'subassemblyAdded' to display SubAssembly Details
+    } else {
       console.log("please enter subAssembly name");
-    }
-    
-  };
-
+    }};
   const validation = () => {
-    if (SubAssembly === ''){
+    if (SubAssembly === "") {
       console.log("subAssemblyName is empty");
       return false;
-    }    
+    }
     return true;
-  }
-  const [issubAssembliesComponents,setIssubAssembliesComponents] = useState("No");
-  const [isBoughtUp,setIsBoughtUp] = useState("No");
- 
+  };
+  const [issubAssembliesComponents, setIssubAssembliesComponents] =
+    useState("No");
+  const [isBoughtUp, setIsBoughtUp] = useState("No");
+
   return (
     <>
       <div aria-label="MainFunction" className={styles.form}>
         {form === "subAssemblyAdded" ? (
-          <Mainassemblies SubAssemblyName={SubAssemblyName} fileLocation={fileLocation} />
+          <Mainassemblies
+            SubAssemblyName={SubAssemblyName}
+            fileLocation={fileLocation}
+          />
         ) : (
           <form>
-            <table class ={styles.table}>
+            <table className={styles.table}>
               <thead>
                 <tr>
-                  <th class ={styles.th}>Name of sub-assembly</th>
-                  <td class ={styles.td}>
+                  <th className={styles.th}>Name of sub-assembly</th>
+                  <td className={styles.td}>
                     <input
-                     className={styles.input}
+                      className={styles.input}
                       type="text"
                       value={SubAssemblyName}
                       onChange={handlesubAssemblyNameChange}
@@ -62,10 +62,10 @@ const SubAssembly = () => {
               </thead>
               <tbody>
                 <tr>
-                  <th class ={styles.th}>File location</th>
-                  <td class ={styles.td}>
+                  <th className={styles.th}>File location</th>
+                  <td className={styles.td}>
                     <input
-                    className={styles.input}
+                      className={styles.input}
                       type="text"
                       value={fileLocation}
                       onChange={handleFileLocationChange}
@@ -73,8 +73,8 @@ const SubAssembly = () => {
                   </td>
                 </tr>
                 <tr>
-                  <th class ={styles.th}>Is it completely bought up</th>
-                  <td class ={styles.td}>
+                  <th className={styles.th}>Is it completely bought up</th>
+                  <td className={styles.td}>
                     {/* <Dropdown autoClose="inside">
                          <Dropdown.Toggle variant="success" id="dropdown-basic" autoClose="inside">
                            Yes/No
@@ -85,21 +85,21 @@ const SubAssembly = () => {
                            <Dropdown.Item href="#/action-2">No</Dropdown.Item>
                          </Dropdown.Menu>
                        </Dropdown> */}
-                    <select className={styles.dropdown}
+                    <select
+                      className={styles.dropdown}
                       value={isBoughtUp} // ...force the select's value to match the state variable...
                       onChange={(e) => setIsBoughtUp(e.target.value)} // ... and update the state variable on any change!
-                    
                     >
-                      <option value="Yes" >Yes</option>
+                      <option value="Yes">Yes</option>
                       <option value="No">No</option>
                     </select>
                   </td>
                 </tr>
                 <tr>
-                  <th class ={styles.th}>
+                  <th className={styles.th}>
                     Do you wish to add its subassemblies/components information?
                   </th>
-                  <td class ={styles.td}>
+                  <td className={styles.td}>
                     {/* <Dropdown >
                          <Dropdown.Toggle variant="success" id="dropdown-basic" autoClose="inside">
                            Yes/No
@@ -115,9 +115,12 @@ const SubAssembly = () => {
 
                       <option value="No">No</option>
                     </select> */}
-                    <select className={styles.dropdown}
+                    <select
+                      className={styles.dropdown}
                       value={issubAssembliesComponents} // ...force the select's value to match the state variable...
-                      onChange={(e) => setIssubAssembliesComponents(e.target.value)} // ... and update the state variable on any change!
+                      onChange={(e) =>
+                        setIssubAssembliesComponents(e.target.value)
+                      } // ... and update the state variable on any change!
                     >
                       <option value="Yes">Yes</option>
                       <option value="No">No</option>
@@ -127,10 +130,9 @@ const SubAssembly = () => {
               </tbody>
             </table>
             <div className={styles.buttonGroup}>
-            <button type="button" className={styles.btn} onClick={handleSave}>
-              Save
-            </button>
-
+              <button type="button" className={styles.btn} onClick={handleSave}>
+                Save
+              </button>
             </div>
           </form>
         )}
