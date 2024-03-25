@@ -1,18 +1,12 @@
 import React, { useState } from "react";
 import styles from "../product.module.css";
 
-function Mainassemblies({}) {
-  const [SubAssembly, setSubAssemblyName] = useState("");
-  const [secondaryFunctions, setSecondaryFunctions] = useState([]); // State to store secondary functions
-  const [selectedRows, setSelectedRows] = useState([]); // State to store selected row indices
-  const [form, setForm] = useState("");
-
-  const handleSubAssemblyNameChange = (event) => {
-    setSubAssemblyName(event.target.value);
-  };
+function MainAssemblies({ SubAssembly,handleInputChange }) {
+  const [secondaryFunctions, setSecondaryFunctions] = useState(['']);
+  const [selectedRows, setSelectedRows] = useState([]);
 
   const handleAddSecondary = () => {
-    setSecondaryFunctions([...secondaryFunctions, ""]); // Add a new empty secondary function to the state
+    setSecondaryFunctions([...secondaryFunctions, ""]);
   };
 
   const handleSecondaryFunctionChange = (index, value) => {
@@ -21,17 +15,14 @@ function Mainassemblies({}) {
     setSecondaryFunctions(updatedSecondaryFunctions);
   };
 
-  const handleSave = () => {
-    console.log(SubAssembly, secondaryFunctions);
-    setForm("MainFunction");
-  };
-
   const handleDelete = () => {
-    const updatedSecondaryFunctions = secondaryFunctions.filter(
-      (_, index) => !selectedRows.includes(index)
-    );
-    setSecondaryFunctions(updatedSecondaryFunctions);
-    setSelectedRows([]);
+    if (window.confirm("Are you sure you want to delete selected secondary functions?")) {
+      const updatedSecondaryFunctions = secondaryFunctions.filter(
+        (_, index) => !selectedRows.includes(index)
+      );
+      setSecondaryFunctions(updatedSecondaryFunctions);
+      setSelectedRows([]);
+    }
   };
 
   const toggleRowSelection = (index) => {
@@ -49,94 +40,85 @@ function Mainassemblies({}) {
     return selectedRows.includes(index);
   };
 
+  const handleSave = () => {
+    SubAssembly.secondaryFunction=secondaryFunctions
+    console.log(SubAssembly)
+  };
+
   return (
     <div aria-label="SubAssemblyAdded" className={styles.form}>
-      {form === "MainFunction" ? (
-        <Mainassemblies />
-      ) : (
-        <div>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th className={styles.th}>Name of sub-assembly</th>
-                <td className={styles.td}>Front_wheel</td>
-              </tr>
-              <tr>
-                <th className={styles.th}>sub-assembly ID</th>
-                <td className={styles.td}>BI1xxxxABC</td>
-              </tr>
-              <tr>
-                <th className={styles.th}>File location</th>
-                <td className={styles.td}>BI1xxxxABC</td>
-              </tr>
-              <tr>
-                <th className={styles.th}>Is it completely bought up</th>
-                <td className={styles.td}>No</td>
-              </tr>
-              <tr>
-                <th className={styles.th}>
-                  Do you wish to add its subassemblies/components information?
-                </th>
-                <td className={styles.td}>Yes</td>
-              </tr>
-              <tr>
-                <th className={styles.th}>Main Functions </th>
+      <div>
+        <table className={styles.table}>
+        <thead>
+            <tr>
+              <th className={styles.th}>Name of sub-assembly</th>
+              <td className={styles.td}>{SubAssembly.SubAssemblyName}</td>
+            </tr>
+            <tr>
+              <th className={styles.th}>sub-assembly ID</th>
+              <td className={styles.td}>BI1xxxxABC</td>
+            </tr>
+            <tr>
+              <th className={styles.th}>File location</th>
+              <td className={styles.td}>{SubAssembly.fileLocation}</td>
+            </tr>
+            <tr>
+              <th className={styles.th}>Is it completely bought up</th>
+              <td className={styles.td}>{SubAssembly.isBoughtUp}</td>
+            </tr>
+            <tr>
+              <th className={styles.th}>
+                Do you wish to add its subassemblies/components information?
+              </th>
+              <td className={styles.td}>{SubAssembly.isSubAssemblyComponentsNeeded}</td>
+            </tr>
+            <tr>
+              <th className={styles.th}>Main Functions </th>
+              <td className={styles.td}>
+                <input type="text" name="mainFunction" value={SubAssembly.mainFunctions} onChange={(event)=>{handleInputChange(event)}}/>
+              </td>
+            </tr>
+            <tr>
+              <th className={styles.th}>Add secondary function</th>
+            </tr>
+          </thead>
+          <tbody>
+            {secondaryFunctions.map((secondaryFunction, index) => (
+              <tr
+                key={index}
+                style={{
+                  backgroundColor: isRowSelected(index) ? "lightgray" : "white",
+                }}
+                onClick={() => toggleRowSelection(index)}
+              >
+                <th className={styles.th}>Secondary function {index + 1}</th>
                 <td className={styles.td}>
                   <input
                     type="text"
-                    value={SubAssembly}
-                    onChange={handleSubAssemblyNameChange}
+                    value={secondaryFunction}
+                    onChange={(event) =>
+                      handleSecondaryFunctionChange(index, event.target.value)
+                    }
                   />
                 </td>
               </tr>
-              <tr>
-                <th className={styles.th}>Add secondary function</th>
-              </tr>
-            </thead>
-            <tbody>
-              {secondaryFunctions.map((secondaryFunction, index) => (
-                <tr
-                  key={index}
-                  style={{
-                    backgroundColor: isRowSelected(index)
-                      ? "lightgray"
-                      : "white",
-                  }}
-                  onClick={() => toggleRowSelection(index)}
-                >
-                  <th className={styles.th}>Secondary function {index + 1}</th>
-                  <td className={styles.td}>
-                    <input
-                      type="text"
-                      value={secondaryFunction}
-                      onChange={(event) =>
-                        handleSecondaryFunctionChange(index, event.target.value)
-                      }
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div>
-            <button className={styles.btn2} onClick={handleAddSecondary}>
-              Add Secondary Function
-            </button>
-          </div>
-          <div>
-            <button className={styles.btn2} onClick={handleDelete}>
-              Delete Secondary Function
-            </button>
-          </div>
-          <div>
-            <button className={styles.btn2} type="button" onClick={handleSave}>
-              Save
-            </button>
-          </div>
+            ))}
+          </tbody>
+        </table>
+        <div>
+          <button className={styles.btn2} onClick={handleAddSecondary}>
+            Add Secondary Function
+          </button>
+          <button className={styles.btn2} onClick={handleDelete}>
+            Delete Selected Secondary Functions
+          </button>
+          <button className={styles.btn2} type="button" onClick={handleSave}>
+            Save
+          </button>
         </div>
-      )}
+      </div>
     </div>
   );
 }
 
-export default Mainassemblies;
+export default MainAssemblies;

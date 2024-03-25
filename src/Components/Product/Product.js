@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import styles from "./product.module.css";
 import AddNewProduct from "./newProduct/AddNewProduct";
 import SubAssembly from "./subAssembly/subAssembly";
-import EditProduct from "./editProduct/EditProduct";
+import EditProduct from "./editProduct/editProduct"
 import Components from "./components/component";
 
 const Product = () => {
@@ -12,7 +12,7 @@ const Product = () => {
         setForm(formType)
     }
     function displayForm(){
-        if(form==="Product Form")
+        if(form==="newProduct")
         return <AddNewProduct/>
         else if (form==="editProduct")
         return <EditProduct/>
