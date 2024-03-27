@@ -155,6 +155,15 @@
     appearance: none;
 }
 
+.hover:hover {
+    cursor: pointer;
+    background: #e8e8e8;
+}
+
+.border {
+    border: 1px solid black;
+}
+
 .children {
     margin-left: 40px;
 }

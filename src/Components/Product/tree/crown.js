@@ -1,23 +1,18 @@
 import { productActions } from "../../../store";
+import classes from "../product.module.css";
 
-const Crown = ({
-    product,
-    nodeId,
-    dispatch,
-    generateChildrenNodes,
-    classes,
-}) => {
+const Crown = ({ product, nodeId, dispatch, generateChildrenNodes }) => {
     const node = product.subassemblies[nodeId] || product.components[nodeId];
     const isAlertDisplayed =
         nodeId.startsWith("s") && node.addChildren && !node.hasAddedChildren;
     const children = generateChildrenNodes(product, nodeId, dispatch);
 
     return (
-        <div className={classes.children}>
+        <div className={`${classes.border} ${classes.children}`}>
             <div
-                className={`${isAlertDisplayed && classes.subassembly} ${
-                    product.currActive === nodeId && classes.active
-                }`}
+                className={`${classes.hover} ${
+                    isAlertDisplayed && classes.subassembly
+                } ${product.currActive === nodeId && classes.active}`}
                 onClick={() =>
                     nodeId.startsWith("s") &&
                     dispatch(productActions.setActive(nodeId))

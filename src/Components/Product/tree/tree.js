@@ -7,18 +7,20 @@ function Tree() {
     const product = useSelector((state) => state.product);
     const dispatch = useDispatch();
     return (
-        <>
+        <div className={classes.border}>
             <div
-                className={
+                className={`${classes.hover} ${
                     product.currActive === product.id ? classes.active : ""
+                }`}
+                onClick={() =>
+                    product.id && dispatch(productActions.setActive(product.id))
                 }
-                onClick={() => dispatch(productActions.setActive(product.id))}
             >
                 {/* {`${product.name} - ${product.id}`} */}
                 {product.name}
             </div>
             {generateChildrenNodes(product, product.id, dispatch)}
-        </>
+        </div>
     );
 }
 
@@ -39,7 +41,6 @@ const generateChildrenNodes = (product, nodeId, dispatch) => {
                 nodeId={child}
                 dispatch={dispatch}
                 generateChildrenNodes={generateChildrenNodes}
-                classes={classes}
             />
         ));
 };
