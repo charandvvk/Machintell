@@ -5,11 +5,15 @@ import SubAssembly from "./subAssembly/subAssembly";
 import EditProduct from "./editProduct/editProduct";
 import AddComponents from "./components/AddComponents";
 import Tree from "./tree/tree";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { productActions } from "../../store";
 
 const Product = () => {
     const [form, setForm] = useState("");
     const product = useSelector((state) => state.product);
+    const dispatch = useDispatch();
+    const [resetProduct, setResetProduct] = useState(false);
+    const [resetSubassembly, setResetSubassembly] = useState(false);
 
     let isDisabled = true;
     if (product.currActive) {
@@ -25,11 +29,20 @@ const Product = () => {
 
     function toggleFormDisplay(formType) {
         setForm(formType);
+        if (formType === "newProduct" && product.id) {
+            dispatch(productActions.reset());
+            setResetProduct((prevState) => !prevState);
+            //send the product tree details to the backend
+        }
+        if (formType === "subAssembly") {
+            setResetSubassembly((prevState) => !prevState);
+        }
     }
     function displayForm() {
-        if (form === "newProduct") return <AddNewProduct />;
+        if (form === "newProduct") return <AddNewProduct key={resetProduct} />;
         else if (form === "editProduct") return <EditProduct />;
-        else if (form === "subAssembly") return <SubAssembly />;
+        else if (form === "subAssembly")
+            return <SubAssembly key={resetSubassembly} />;
         else if (form === "components") return <AddComponents />;
     }
     return (

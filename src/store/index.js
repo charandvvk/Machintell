@@ -1,14 +1,16 @@
 import { configureStore, createSlice } from "@reduxjs/toolkit";
 
+const initialState = {
+    name: "",
+    id: "",
+    components: {},
+    subassemblies: {},
+    currActive: "",
+};
+
 const productSlice = createSlice({
     name: "product",
-    initialState: {
-        name: "",
-        id: "",
-        components: {},
-        subassemblies: {},
-        currActive: "",
-    },
+    initialState,
     reducers: {
         addProductName(state) {
             state.name = "Untitled";
@@ -44,6 +46,9 @@ const productSlice = createSlice({
         },
         setActive(state, action) {
             state.currActive = action.payload;
+        },
+        reset(state) {
+            Object.assign(state, initialState);
         },
     },
 });
