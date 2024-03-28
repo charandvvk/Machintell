@@ -1,42 +1,57 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import SpecificationDetails from "./SpecificationDetails";
 import styles from "../product.module.css";
+import { useDispatch, useSelector } from "react-redux";
+import { productActions } from "../../../store";
 
-function ProductDetails({ productName, fileLocation, productId }) {
-    console.log(productId);
-    const [mainFunction, setMainFunction] = useState("");
+function ProductDetails() {
+    const {
+        name,
+        id,
+        fileLocation,
+        mainFunction,
+        secondaryFunctions,
+        // specifications,
+    } = useSelector((state) => state.product);
+    const dispatch = useDispatch();
     const [error, setError] = useState("");
-    const [product, setProduct] = useState({
-        productName: productName,
-        fileLocation: fileLocation,
-        mainFunction: "",
-        secondaryFunction: [],
-        specifications: [],
-    });
-    const [secondaryFunctions, setSecondaryFunctions] = useState([""]); // State to store secondary functions
+    const [secondaryFunctionsState, setSecondaryFunctionsState] =
+        useState(secondaryFunctions); // State to store secondary functions
     const [selectedRows, setSelectedRows] = useState([]); // State to store selected row indices
-    const [form, setForm] = useState("");
 
-    const handleMainFunctionChange = (event) => {
-        setMainFunction(event.target.value);
-    };
+    const mainFunctionRef = useRef();
 
     const handleAddSecondary = () => {
-        setSecondaryFunctions([...secondaryFunctions, ""]); // Add a new empty secondary function to the state
+        setSecondaryFunctionsState((prevState) => [...prevState, ""]); // Add a new empty secondary function to the state
     };
 
-    const handleSecondaryFunctionChange = (index, value) => {
-        const updatedSecondaryFunctions = [...secondaryFunctions];
-        updatedSecondaryFunctions[index] = value;
-        setSecondaryFunctions(updatedSecondaryFunctions);
+    const handleSecondaryFunctionStateChange = (value, index) => {
+        setSecondaryFunctionsState((prevState) => {
+            const updatedSecondaryFunctionsState = [...prevState];
+            updatedSecondaryFunctionsState[index] = value;
+            return updatedSecondaryFunctionsState;
+        });
     };
+
+    console.log(secondaryFunctions);
 
     const handleSave = () => {
-        console.log("Saving data...", mainFunction, secondaryFunctions);
+        console.log(
+            "Saving data...",
+            mainFunctionRef.current.value,
+            secondaryFunctionsState
+        );
 
         // Perform validation
         if (validation()) {
-            setForm("specifications"); // Set the form state to 'productAdded' to display ProductDetails
+            dispatch(
+                productActions.addProductDetails({
+                    mainFunction: mainFunctionRef.current.value,
+                    secondaryFunctions: [...secondaryFunctionsState],
+                })
+            );
+            // add product details data to backend
+            // add product secondary functions data to backend
         } else {
             console.log("Validation failed");
         }
@@ -47,13 +62,13 @@ function ProductDetails({ productName, fileLocation, productId }) {
         let errorMessage = "";
 
         // Check if mainFunction is empty
-        if (mainFunction.trim() === "") {
+        if (mainFunctionRef.current.value.trim() === "") {
             errorMessage += "Please enter Main Function.\n";
             isValid = false;
         }
 
         // Check if Secondary Function is empty
-        if (secondaryFunctions.some((sf) => sf.trim() === "")) {
+        if (secondaryFunctionsState.some((sf) => sf.trim() === "")) {
             errorMessage += "Please enter  all Secondary Functions.\n";
             isValid = false;
         }
@@ -65,126 +80,111 @@ function ProductDetails({ productName, fileLocation, productId }) {
     };
 
     const handleDelete = () => {
-        let updatedSecondaryFunctions;
-        if (selectedRows.length === 0) {
-            updatedSecondaryFunctions = [...secondaryFunctions];
-            updatedSecondaryFunctions.pop();
-        } else {
-            updatedSecondaryFunctions = secondaryFunctions.filter(
-                (_, index) => !selectedRows.includes(index)
-            );
-        }
-        setSecondaryFunctions(updatedSecondaryFunctions);
+        setSecondaryFunctionsState((prevState) => {
+            return selectedRows.length
+                ? prevState.filter((_, index) => !selectedRows.includes(index))
+                : prevState.slice(0, -1);
+        });
         setSelectedRows([]);
     };
 
-    const toggleRowSelection = (index) => {
-        const selectedIndex = selectedRows.indexOf(index);
-        if (selectedIndex === -1) {
-            setSelectedRows([...selectedRows, index]);
-        } else {
-            const updatedSelectedRows = [...selectedRows];
-            updatedSelectedRows.splice(selectedIndex, 1);
-            setSelectedRows(updatedSelectedRows);
-        }
-    };
-
-    const isRowSelected = (index) => {
-        return selectedRows.includes(index);
+    const toggleRowSelection = (selectedIndex) => {
+        setSelectedRows((prevState) => {
+            return prevState.includes(selectedIndex)
+                ? prevState.filter((index) => index != selectedIndex)
+                : [...prevState, selectedIndex];
+        });
     };
 
     return (
         <div aria-label="productAdded" className={styles.form}>
-            {form === "specifications" ? (
-                <SpecificationDetails
-                    productName={productName}
-                    fileLocation={fileLocation}
-                />
-            ) : (
+            <div>
+                <table className={styles.table}>
+                    <thead>
+                        <tr>
+                            <th className={styles.th}>Name of the Product</th>
+                            <td className={styles.td}>{name}</td>
+                        </tr>
+                        <tr>
+                            <th className={styles.th}>Product ID</th>
+                            <td className={styles.td}>{id}</td>
+                        </tr>
+                        <tr>
+                            <th className={styles.th}>File location</th>
+                            <td className={styles.td}>{fileLocation}</td>
+                        </tr>
+                        <tr>
+                            <th className={styles.th}>Main Functions</th>
+                            <td className={styles.td}>
+                                <textarea
+                                    className={styles.input}
+                                    defaultValue={mainFunction}
+                                    ref={mainFunctionRef}
+                                />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th className={styles.th} colSpan="2">
+                                Add secondary function
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {secondaryFunctionsState.map(
+                            (secondaryFunctionState, index) => (
+                                <tr
+                                    key={index}
+                                    style={{
+                                        backgroundColor: selectedRows.includes(
+                                            index
+                                        )
+                                            ? "lightgray"
+                                            : "white",
+                                    }}
+                                    onClick={() => toggleRowSelection(index)}
+                                >
+                                    <th className={styles.th}>
+                                        Secondary function {index + 1}
+                                    </th>
+                                    <td className={styles.th}>
+                                        <input
+                                            className={styles.input}
+                                            type="text"
+                                            value={secondaryFunctionState}
+                                            onChange={(event) =>
+                                                handleSecondaryFunctionStateChange(
+                                                    event.target.value,
+                                                    index
+                                                )
+                                            }
+                                        />
+                                    </td>
+                                </tr>
+                            )
+                        )}
+                    </tbody>
+                </table>
                 <div>
-                    <table className={styles.table}>
-                        <thead>
-                            <tr>
-                                <th className={styles.th}>
-                                    Name of the Product
-                                </th>
-                                <td className={styles.td}>{productName}</td>
-                            </tr>
-                            <tr>
-                                <th className={styles.th}>Product ID</th>
-                                <td className={styles.td}>{productId}</td>
-                            </tr>
-                            <tr>
-                                <th className={styles.th}>Main Functions</th>
-                                <td className={styles.td}>
-                                    <textarea
-                                        className={styles.input}
-                                        value={mainFunction}
-                                        onChange={handleMainFunctionChange}
-                                    />
-                                </td>
-                            </tr>
-                            <tr>
-                                <th className={styles.th} colSpan="2">
-                                    Add secondary function
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {secondaryFunctions.map(
-                                (secondaryFunction, index) => (
-                                    <tr
-                                        key={index}
-                                        style={{
-                                            backgroundColor: isRowSelected(
-                                                index
-                                            )
-                                                ? "lightgray"
-                                                : "white",
-                                        }}
-                                        onClick={() =>
-                                            toggleRowSelection(index)
-                                        }
-                                    >
-                                        <th className={styles.th}>
-                                            Secondary function {index + 1}
-                                        </th>
-                                        <td className={styles.th}>
-                                            <input
-                                                className={styles.input}
-                                                type="text"
-                                                value={secondaryFunction}
-                                                onChange={(event) =>
-                                                    handleSecondaryFunctionChange(
-                                                        index,
-                                                        event.target.value
-                                                    )
-                                                }
-                                            />
-                                        </td>
-                                    </tr>
-                                )
-                            )}
-                        </tbody>
-                    </table>
-                    <div>
-                        <div className={styles.btn2}>
-                            <button onClick={handleAddSecondary}>Add </button>
-                        </div>
-                        <div className={styles.btn2}>
-                            <button onClick={handleDelete}>Delete </button>
-                        </div>
-                        <div className={styles.btn2}>
-                            <button onClick={handleSave}>Save</button>
-                        </div>
+                    <div className={styles.btn2}>
+                        <button onClick={handleAddSecondary}>Add </button>
+                    </div>
+                    <div className={styles.btn2}>
+                        <button onClick={handleDelete}>Delete </button>
+                    </div>
+                    <div className={styles.btn2}>
+                        <button onClick={handleSave}>Save</button>
                     </div>
                 </div>
-            )}
+            </div>
             {error && (
                 <div className={styles.error}>
                     <pre>{error}</pre>
                 </div>
             )}
+            <SpecificationDetails
+                productName={name}
+                fileLocation={fileLocation}
+            />
         </div>
     );
 }

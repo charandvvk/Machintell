@@ -1,41 +1,32 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import ProductDetails from "./ProductDetails";
 import styles from "../product.module.css";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { productActions } from "../../../store";
 import generateId from "../../../util";
 
 function AddNewProduct() {
-    const [productName, setProductName] = useState("");
-    const [fileLocation, setFileLocation] = useState("");
-    const [productId, setProductId] = useState("");
-    const [form, setForm] = useState("");
+    const nameRef = useRef();
+    const fileLocationRef = useRef();
     const [error, setError] = useState("");
     const dispatch = useDispatch();
+
     useEffect(() => {
         dispatch(productActions.addProductName());
     }, [dispatch]);
-
-    const handleProductNameChange = (event) => {
-        setProductName(event.target.value);
-    };
-
-    const handleFileLocationChange = (event) => {
-        setFileLocation(event.target.value);
-    };
 
     const validation = () => {
         let isValid = true;
         let errorMessage = "";
 
         // Check if productName is empty
-        if (productName.trim() === "") {
+        if (nameRef.current.value.trim() === "") {
             errorMessage += "Please enter product name.\n";
             isValid = false;
         }
 
         // Check if fileLocation is empty
-        if (fileLocation.trim() === "") {
+        if (fileLocationRef.current.value.trim() === "") {
             errorMessage += "Please enter file location.\n";
             isValid = false;
         }
@@ -47,17 +38,16 @@ function AddNewProduct() {
     };
 
     const handleSave = () => {
-        console.log("Saving data...", productName, fileLocation);
+        console.log("Saving data...");
 
         // Perform validation
         if (validation()) {
-            setForm("productAdded"); // Set the form state to 'productAdded' to display ProductDetails
-            const productId = generateId(productName, "p");
-            setProductId(productId);
+            // add product data to backend
             dispatch(
                 productActions.addProduct({
-                    name: productName,
-                    id: productId,
+                    name: nameRef.current.value,
+                    fileLocation: fileLocationRef.current.value,
+                    id: generateId(nameRef.current.value, "p"),
                 })
             );
         } else {
@@ -67,60 +57,49 @@ function AddNewProduct() {
 
     return (
         <div aria-label="Product Form" className={styles.form}>
-            {form === "productAdded" ? (
-                <ProductDetails
-                    productName={productName}
-                    fileLocation={fileLocation}
-                    productId={productId}
-                />
-            ) : (
-                <form>
-                    <div className={styles.tableContainer}>
-                        <table className={styles.table}>
-                            <thead>
-                                <tr>
-                                    <th className={styles.th}>
-                                        Name of the Product
-                                    </th>
-                                    <td className={styles.td}>
-                                        <input
-                                            className={styles.input}
-                                            type="text"
-                                            value={productName}
-                                            onChange={handleProductNameChange}
-                                            required
-                                        />
-                                    </td>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <th className={styles.th}>File location</th>
-                                    <td className={styles.td}>
-                                        <input
-                                            className={styles.input}
-                                            type="text"
-                                            value={fileLocation}
-                                            onChange={handleFileLocationChange}
-                                            required
-                                        />
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <div className={styles.buttonGroup}>
-                            <button
-                                type="button"
-                                className={styles.btn2}
-                                onClick={handleSave}
-                            >
-                                Save
-                            </button>
-                        </div>
+            <form>
+                <div className={styles.tableContainer}>
+                    <table className={styles.table}>
+                        <thead>
+                            <tr>
+                                <th className={styles.th}>
+                                    Name of the Product
+                                </th>
+                                <td className={styles.td}>
+                                    <input
+                                        ref={nameRef}
+                                        className={styles.input}
+                                        type="text"
+                                        required
+                                    />
+                                </td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th className={styles.th}>File location</th>
+                                <td className={styles.td}>
+                                    <input
+                                        ref={fileLocationRef}
+                                        className={styles.input}
+                                        type="text"
+                                        required
+                                    />
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div className={styles.buttonGroup}>
+                        <button
+                            type="button"
+                            className={styles.btn2}
+                            onClick={handleSave}
+                        >
+                            Save
+                        </button>
                     </div>
-                </form>
-            )}
-
+                </div>
+            </form>
             {error && (
                 <div className={styles.error}>
                     <pre>{error}</pre>

@@ -155,9 +155,12 @@
     appearance: none;
 }
 
-.hover:hover {
-    cursor: pointer;
+.background:hover {
     background: #e8e8e8;
+}
+
+.cursor:hover {
+    cursor: pointer;
 }
 
 .border {

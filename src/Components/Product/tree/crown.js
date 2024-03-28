@@ -10,9 +10,11 @@ const Crown = ({ product, nodeId, dispatch, generateChildrenNodes }) => {
     return (
         <div className={`${classes.border} ${classes.children}`}>
             <div
-                className={`${classes.hover} ${
-                    isAlertDisplayed && classes.subassembly
-                } ${product.currActive === nodeId && classes.active}`}
+                className={`${classes.cursor} ${
+                    product.currActive === nodeId
+                        ? classes.active
+                        : classes.background
+                } ${isAlertDisplayed && classes.subassembly}`}
                 onClick={() =>
                     nodeId.startsWith("s") &&
                     dispatch(productActions.setActive(nodeId))

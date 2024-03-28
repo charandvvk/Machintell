@@ -2,10 +2,15 @@ import { configureStore, createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
     name: "",
+    fileLocation: "",
     id: "",
-    components: {},
+    mainFunction: "",
+    secondaryFunctions: [],
+    specifications: [],
     subassemblies: {},
+    components: {},
     currActive: "",
+    currForm: "",
 };
 
 const productSlice = createSlice({
@@ -13,30 +18,40 @@ const productSlice = createSlice({
     initialState,
     reducers: {
         addProductName(state) {
-            state.name = "Untitled";
+            state.name = "Untitled project";
         },
-        addProduct(state, action) {
-            state.name = action.payload.name;
-            state.id = action.payload.id;
-            state.currActive = action.payload.id;
+        addProduct(state, { payload }) {
+            state.name = payload.name;
+            state.fileLocation = payload.fileLocation;
+            state.id = payload.id;
+            state.currForm = "";
+        },
+        addProductDetails(state, { payload }) {
+            state.mainFunction = payload.mainFunction;
+            state.secondaryFunctions = [...payload.secondaryFunctions];
+        },
+        addProductSpecifications(state, { payload }) {
+            state.specifications = payload.map((specification) => ({
+                ...specification,
+            }));
         },
         // addSubassemblyName(state) {
         //     state.name = "Untitled";
         // },
-        addSubassembly(state, action) {
+        addSubassembly(state, { payload }) {
             handleAddChildren(state);
             const subassembly = {
-                name: action.payload.name,
+                name: payload.name,
                 parent: state.currActive,
-                addChildren: action.payload.addChildren,
+                addChildren: payload.addChildren,
             };
             if (subassembly.addChildren) subassembly.hasAddedChildren = false;
-            state.subassemblies[action.payload.id] = subassembly;
-            state.currActive = action.payload.id;
+            state.subassemblies[payload.id] = subassembly;
+            state.currActive = payload.id;
         },
-        addComponents(state, action) {
+        addComponents(state, { payload }) {
             handleAddChildren(state);
-            const components = action.payload;
+            const components = payload;
             for (let component of components) {
                 state.components[component[1].value] = {
                     parent: state.currActive,
@@ -44,8 +59,11 @@ const productSlice = createSlice({
                 };
             }
         },
-        setActive(state, action) {
-            state.currActive = action.payload;
+        setActive(state, { payload }) {
+            state.currActive = payload;
+        },
+        setCurrForm(state, { payload }) {
+            state.currForm = payload;
         },
         reset(state) {
             Object.assign(state, initialState);

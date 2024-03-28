@@ -7,44 +7,47 @@ import AddComponents from "./components/AddComponents";
 import Tree from "./tree/tree";
 import { useDispatch, useSelector } from "react-redux";
 import { productActions } from "../../store";
+import ProductDetails from "./newProduct/ProductDetails";
+import MainAssemblies from "./subAssembly/Mainassemblies";
 
 const Product = () => {
-    const [form, setForm] = useState("");
-    const product = useSelector((state) => state.product);
-    const dispatch = useDispatch();
-    const [resetProduct, setResetProduct] = useState(false);
     const [resetSubassembly, setResetSubassembly] = useState(false);
+    const { name, id, currActive, subassemblies, currForm } = useSelector(
+        (state) => state.product
+    );
+    const dispatch = useDispatch();
 
     let isDisabled = true;
-    if (product.currActive) {
-        if (product.currActive.startsWith("p")) isDisabled = false;
+    if (currActive) {
+        if (currActive.startsWith("p")) isDisabled = false;
         else {
-            if (product.subassemblies[product.currActive].addChildren) {
-                isDisabled = false;
-            } else {
-                isDisabled = true;
-            }
+            isDisabled = !subassemblies[currActive].addChildren;
         }
     }
 
     function toggleFormDisplay(formType) {
-        setForm(formType);
-        if (formType === "newProduct" && product.id) {
-            dispatch(productActions.reset());
-            setResetProduct((prevState) => !prevState);
+        dispatch(productActions.setCurrForm(formType));
+        if (formType === "newProduct" && id) {
             //send the product tree details to the backend
+            dispatch(productActions.reset());
+            dispatch(productActions.setCurrForm("newProduct"));
         }
         if (formType === "subAssembly") {
             setResetSubassembly((prevState) => !prevState);
         }
     }
+
     function displayForm() {
-        if (form === "newProduct") return <AddNewProduct key={resetProduct} />;
-        else if (form === "editProduct") return <EditProduct />;
-        else if (form === "subAssembly")
+        if (currForm === "newProduct") return <AddNewProduct />;
+        else if (currForm === "editProduct") return <EditProduct />;
+        else if (currForm === "subAssembly")
             return <SubAssembly key={resetSubassembly} />;
-        else if (form === "components") return <AddComponents />;
+        else if (currForm === "components" || currActive.startsWith("c"))
+            return <AddComponents />;
+        else if (currForm === "productDetails") return <ProductDetails />;
+        // else if (currForm === "mainAssemblies") return <SubAssembly />;
     }
+
     return (
         <>
             <div className={styles.container}>
@@ -52,7 +55,9 @@ const Product = () => {
                     <div className={styles.buttons}>
                         <button
                             type="button"
-                            className={styles.btn}
+                            className={`${styles.btn} ${
+                                currForm === "newProduct" && styles.active
+                            }`}
                             onClick={() => {
                                 toggleFormDisplay("newProduct");
                             }}
@@ -61,7 +66,9 @@ const Product = () => {
                         </button>
                         <button
                             type="button"
-                            className={styles.btn}
+                            className={`${styles.btn} ${
+                                currForm === "editProduct" && styles.active
+                            }`}
                             onClick={() => {
                                 toggleFormDisplay("editProduct");
                             }}
@@ -75,7 +82,9 @@ const Product = () => {
                     <div className={styles.buttons}>
                         <button
                             type="button"
-                            className={styles.btn}
+                            className={`${styles.btn} ${
+                                currForm === "subAssembly" && styles.active
+                            }`}
                             onClick={() => {
                                 toggleFormDisplay("subAssembly");
                             }}
@@ -85,7 +94,9 @@ const Product = () => {
                         </button>
                         <button
                             type="button"
-                            className={styles.btn}
+                            className={`${styles.btn} ${
+                                currForm === "components" && styles.active
+                            }`}
                             onClick={() => {
                                 toggleFormDisplay("components");
                             }}
@@ -105,11 +116,14 @@ const Product = () => {
                 <div className={styles.col}>
                     <div className={styles.leftcol}>
                         <div className={styles.leftcolTitle}>
-                            {product.name && <Tree />}
+                            {name && <Tree />}
                         </div>
                     </div>
                     <div className={styles.rightcol}>
                         <div>{displayForm()}</div>
+                        <div>
+                            {/* {id && currActive === id && <ProductDetails />} */}
+                        </div>
                     </div>
                 </div>
             </div>

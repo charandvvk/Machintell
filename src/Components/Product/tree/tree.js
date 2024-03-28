@@ -9,12 +9,17 @@ function Tree() {
     return (
         <div className={classes.border}>
             <div
-                className={`${classes.hover} ${
-                    product.currActive === product.id ? classes.active : ""
+                className={`${classes.cursor} ${
+                    product.currActive !== product.id && classes.background
+                } ${
+                    product.id &&
+                    product.currActive === product.id &&
+                    classes.active
                 }`}
-                onClick={() =>
-                    product.id && dispatch(productActions.setActive(product.id))
-                }
+                onClick={() => {
+                    dispatch(productActions.setActive(product.id));
+                    dispatch(productActions.setCurrForm("productDetails"));
+                }}
             >
                 {/* {`${product.name} - ${product.id}`} */}
                 {product.name}
