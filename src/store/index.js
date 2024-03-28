@@ -5,8 +5,8 @@ const initialState = {
     fileLocation: "",
     id: "",
     mainFunction: "",
-    secondaryFunctions: [],
-    specifications: [],
+    secondaryFunctions: [""],
+    specifications: [["", "", ""]],
     subassemblies: {},
     components: {},
     currActive: "",
@@ -31,9 +31,9 @@ const productSlice = createSlice({
             state.secondaryFunctions = [...payload.secondaryFunctions];
         },
         addProductSpecifications(state, { payload }) {
-            state.specifications = payload.map((specification) => ({
+            state.specifications = payload.map((specification) => [
                 ...specification,
-            }));
+            ]);
         },
         // addSubassemblyName(state) {
         //     state.name = "Untitled";

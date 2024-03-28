@@ -1,34 +1,63 @@
 import React, { useState } from "react";
 import DynamicTable from "./DynamicTable";
 import styles from "../product.module.css";
+import { useDispatch, useSelector } from "react-redux";
+import { productActions } from "../../../store";
 
-function SpecificationDetails({ product }) {
-    const [specifications, setSpecifications] = useState([
-        [{ value: "" }, { value: "" }, { value: "" }],
-    ]);
+function SpecificationDetails() {
     const [selectedRows, setSelectedRows] = useState([]);
     const [error, seterror] = useState("");
+    const dispatch = useDispatch();
+    const { specifications } = useSelector((state) => state.product);
+    const [specificationsState, setSpecificationsState] =
+        useState(specifications);
 
-    const handleAddSpecification = () => {
-        setSpecifications([
-            ...specifications,
-            [{ value: "" }, { value: "" }, { value: "" }],
-        ]);
+    const handleInputChange = (value, rowIndex, cellIndex) => {
+        setSpecificationsState((prevState) => {
+            const updatedSpecificationsState = prevState.map(
+                (specification) => [...specification]
+            );
+            updatedSpecificationsState[rowIndex][cellIndex] = value;
+            return updatedSpecificationsState;
+        });
+    };
+    const handleAddRow = () => {
+        setSpecificationsState((prevState) => {
+            const updatedSpecificationsState = prevState.map(
+                (specification) => [...specification]
+            );
+            updatedSpecificationsState.push(["", "", ""]);
+            return updatedSpecificationsState;
+        });
     };
 
-    const handleDeleteRow = (index) => {
-        const updatedSpecifications = [...specifications];
-        updatedSpecifications.splice(index, 1);
-        setSpecifications(updatedSpecifications);
+    const handleDeleteRow = () => {
+        setSpecificationsState((prevState) => {
+            return selectedRows.length
+                ? prevState.filter((_, index) => !selectedRows.includes(index))
+                : prevState.slice(0, -1);
+        });
         setSelectedRows([]);
     };
 
-    const handleSave = () => {
-        // product.specifications=specifications;
-        console.log(product);
+    const toggleRowSelection = (selectedIndex) => {
+        setSelectedRows((prevState) => {
+            return prevState.includes(selectedIndex)
+                ? prevState.filter((index) => index != selectedIndex)
+                : [...prevState, selectedIndex];
+        });
+    };
 
+    const handleSave = () => {
         if (validation()) {
             console.log("saved");
+            dispatch(
+                productActions.addProductSpecifications(
+                    specificationsState.map((specification) => [
+                        ...specification,
+                    ])
+                )
+            );
         } else {
             console.log("Validation Failed");
         }
@@ -38,8 +67,8 @@ function SpecificationDetails({ product }) {
         let errorMessage = "";
 
         if (
-            specifications.some((row) =>
-                row.some((sp) => sp.value.trim() === "")
+            specificationsState.some((row) =>
+                row.some((sp) => sp.trim() === "")
             )
         ) {
             errorMessage += "Please enter all Specifications.\n";
@@ -51,29 +80,21 @@ function SpecificationDetails({ product }) {
         return isValid;
     };
 
-    const handleInputChange = (event, rowIndex, cellIndex) => {
-        // console.log(event.target.value)
-        const updatedSpecifications = [...specifications];
-        updatedSpecifications[rowIndex][cellIndex].value = event.target.value; // Update the 'value' property
-        setSpecifications(updatedSpecifications);
-    };
     return (
         <div>
             <DynamicTable
                 className="dynamic-table"
                 headers={["Name", "Units", "Value"]}
-                data={specifications}
+                data={specificationsState}
                 selectedRows={selectedRows}
                 onRowSelection={(index) => setSelectedRows([index])}
                 onDeleteRow={handleDeleteRow}
                 onInputChange={handleInputChange}
+                toggleRowSelection={toggleRowSelection}
             />
             <div className={styles.buttonGroup}>
                 <div>
-                    <button
-                        className={styles.btn2}
-                        onClick={handleAddSpecification}
-                    >
+                    <button className={styles.btn2} onClick={handleAddRow}>
                         Add Specification
                     </button>
                 </div>

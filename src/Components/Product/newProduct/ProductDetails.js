@@ -33,8 +33,6 @@ function ProductDetails() {
         });
     };
 
-    console.log(secondaryFunctions);
-
     const handleSave = () => {
         console.log(
             "Saving data...",
@@ -50,7 +48,7 @@ function ProductDetails() {
                     secondaryFunctions: [...secondaryFunctionsState],
                 })
             );
-            // add product details data to backend
+            // add product details (main function) data to backend
             // add product secondary functions data to backend
         } else {
             console.log("Validation failed");
