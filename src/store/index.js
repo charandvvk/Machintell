@@ -64,11 +64,12 @@ const productSlice = createSlice({
         },
         addComponents(state, { payload }) {
             handleChildrenNeed(state);
-            const components = payload;
-            for (let component of components) {
-                state.components[component[1].value] = {
+            for (let component of payload) {
+                state.components[component[1]] = {
                     parent: state.currActive,
-                    name: component[0].value,
+                    name: component[0],
+                    isBoughtUp: component[2],
+                    fileLocation: component[3],
                 };
             }
             state.currForm = "";

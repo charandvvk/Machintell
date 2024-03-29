@@ -39,8 +39,8 @@ const Product = () => {
         if (currForm === "newProduct") return <AddNewProduct />;
         else if (currForm === "editProduct") return <EditProduct />;
         else if (currForm === "subAssembly") return <SubAssembly />;
-        else if (currForm === "components" || currActive.startsWith("c"))
-            return <AddComponents />;
+        else if (currForm === "components")
+            return <AddComponents key={currActive} />;
         else if (currForm === "productDetails") return <ProductDetails />;
         else if (currForm === "subAssemblyDetails") {
             return <SubAssemblyDetails key={currActive} />;

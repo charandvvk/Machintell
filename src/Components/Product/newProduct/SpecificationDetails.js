@@ -21,6 +21,7 @@ function SpecificationDetails() {
             return updatedSpecificationsState;
         });
     };
+
     const handleAddRow = () => {
         setSpecificationsState((prevState) => {
             const updatedSpecificationsState = prevState.map(
@@ -71,7 +72,7 @@ function SpecificationDetails() {
                 row.some((sp) => sp.trim() === "")
             )
         ) {
-            errorMessage += "Please enter all Specifications.\n";
+            errorMessage += "Please enter all details.\n";
             isValid = false;
         }
 

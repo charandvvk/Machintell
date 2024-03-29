@@ -1,32 +1,53 @@
 import React from "react";
 import styles from "../product.module.css";
 
-function DynamicTable({ headers, data, onInputChange, onInputBlur }) {
+function DynamicTable({
+    headers,
+    data,
+    onInputChange,
+    onInputBlur,
+    selectedRows,
+    toggleRowSelection,
+    currActive,
+    currActivePos,
+}) {
     const renderCell = (cell, rowIndex, cellIndex) => {
-        if (cell.type === "input") {
+        if (cellIndex !== 2) {
             return (
                 <input
                     disabled={cellIndex === 1}
-                    className={styles.input}
+                    className={`${styles.input} ${
+                        currActive.startsWith("c") &&
+                        currActivePos !== rowIndex &&
+                        styles.disabled
+                    }`}
                     type="text"
-                    value={cell.value}
-                    onChange={(e) => onInputChange(e, rowIndex, cellIndex)}
-                    onBlur={(e) => onInputBlur(e, rowIndex, cellIndex)}
+                    value={cell}
+                    onChange={(e) =>
+                        onInputChange(e.target.value, rowIndex, cellIndex)
+                    }
+                    onBlur={(e) =>
+                        onInputBlur(e.target.value, rowIndex, cellIndex)
+                    }
                 />
             );
-        } else if (cell.type === "select") {
+        } else {
             return (
                 <select
-                    className={styles.dropdown}
-                    value={cell.value}
-                    onChange={(e) => onInputChange(e, rowIndex, cellIndex)}
+                    className={`${styles.drop} ${
+                        currActive.startsWith("c") &&
+                        currActivePos !== rowIndex &&
+                        styles.disabled
+                    }`}
+                    value={cell}
+                    onChange={(e) =>
+                        onInputChange(e.target.value, rowIndex, cellIndex)
+                    }
                 >
                     <option value="Yes">Yes</option>
                     <option value="No">No</option>
                 </select>
             );
-        } else {
-            return cell[headers[cellIndex]];
         }
     };
 
@@ -43,7 +64,18 @@ function DynamicTable({ headers, data, onInputChange, onInputBlur }) {
             </thead>
             <tbody>
                 {data.map((row, rowIndex) => (
-                    <tr key={rowIndex}>
+                    <tr
+                        key={rowIndex}
+                        style={{
+                            backgroundColor: selectedRows.includes(rowIndex)
+                                ? "lightgray"
+                                : "white",
+                        }}
+                        onClick={() =>
+                            !currActive.startsWith("c") &&
+                            toggleRowSelection(rowIndex)
+                        }
+                    >
                         {row.map((cell, cellIndex) => (
                             <td className={styles.td} key={cellIndex}>
                                 {renderCell(cell, rowIndex, cellIndex)}

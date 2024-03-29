@@ -186,3 +186,8 @@
     height: 15px;
     background: orangered;
 }
+
+.disabled {
+    pointer-events: none;
+    color: lightgray;
+}
