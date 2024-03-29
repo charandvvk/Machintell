@@ -28,7 +28,9 @@ const Crown = ({ product, nodeId, dispatch, generateChildrenNodes }) => {
             <div
                 className={`${nodeId !== "untitled" && classes.cursor} ${
                     nodeId !== "untitled" &&
-                    (product.currActive === nodeId ? "active" : "background")
+                    (product.currActive === nodeId
+                        ? classes.active
+                        : classes.background)
                 } ${isAlertDisplayed && classes.subassembly}`}
                 onClick={handleNodeClick}
             >
