@@ -9,16 +9,6 @@ const initialState = {
     specifications: [["", "", ""]],
     subassemblies: {
         untitled: { name: "Untitled", parent: "" },
-        // "": {
-        //     parent: "",
-        //     name: "",
-        //     fileLocation: "",
-        //     isBoughtUp: "No",
-        //     isChildrenNeeded: "No",
-        //     mainFunction: "",
-        //     secondaryFunction: [""],
-        //     specifications: [["", "", ""]],
-        // },
     },
     components: {},
     currActive: "",
@@ -56,10 +46,21 @@ const productSlice = createSlice({
                 parent: state.currActive,
                 name: payload.name,
                 isChildrenNeeded: payload.isChildrenNeeded,
+                fileLocation: payload.fileLocation,
+                isBoughtUp: payload.isBoughtUp,
+                mainFunction: "",
+                secondaryFunctions: [""],
             };
             state.subassemblies[payload.id] = subassembly;
             state.currForm = "";
             state.currActive = "";
+        },
+        addSubassemblyDetails(state, { payload }) {
+            state.subassemblies[state.currActive].mainFunction =
+                payload.mainFunction;
+            state.subassemblies[state.currActive].secondaryFunctions = [
+                ...payload.secondaryFunctions,
+            ];
         },
         addComponents(state, { payload }) {
             handleChildrenNeed(state);
@@ -86,12 +87,16 @@ const productSlice = createSlice({
 });
 
 const store = configureStore({
-    reducer: { product: productSlice.reducer },
+    reducer: {
+        product: productSlice.reducer,
+        // subassembly: subassemblySlice.reducer,
+    },
 });
 
 export default store;
 
 export const productActions = productSlice.actions;
+// export const subassemblyActions = subassemblySlice.actions;
 
 function handleChildrenNeed(state) {
     const { currActive, subassemblies } = state;

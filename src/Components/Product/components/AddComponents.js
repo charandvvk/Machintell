@@ -5,7 +5,7 @@ import generateId from "../../../util";
 import { useDispatch } from "react-redux";
 import { productActions } from "../../../store";
 
-function AddComponents({ product }) {
+function AddComponents() {
     const dispatch = useDispatch();
     const [components, setComponents] = useState([
         [

@@ -12,7 +12,6 @@ function ProductDetails() {
     const [secondaryFunctionsState, setSecondaryFunctionsState] =
         useState(secondaryFunctions); // State to store secondary functions
     const [selectedRows, setSelectedRows] = useState([]); // State to store selected row indices
-
     const mainFunctionRef = useRef();
 
     const handleAddSecondary = () => {
@@ -25,50 +24,6 @@ function ProductDetails() {
             updatedSecondaryFunctionsState[index] = value;
             return updatedSecondaryFunctionsState;
         });
-    };
-
-    const handleSave = () => {
-        console.log(
-            "Saving data...",
-            mainFunctionRef.current.value,
-            secondaryFunctionsState
-        );
-
-        // Perform validation
-        if (validation()) {
-            dispatch(
-                productActions.addProductDetails({
-                    mainFunction: mainFunctionRef.current.value,
-                    secondaryFunctions: [...secondaryFunctionsState],
-                })
-            );
-            // add product details (main function) data to backend
-            // add product secondary functions data to backend
-        } else {
-            console.log("Validation failed");
-        }
-    };
-
-    const validation = () => {
-        let isValid = true;
-        let errorMessage = "";
-
-        // Check if mainFunction is empty
-        if (mainFunctionRef.current.value.trim() === "") {
-            errorMessage += "Please enter Main Function.\n";
-            isValid = false;
-        }
-
-        // Check if Secondary Function is empty
-        if (secondaryFunctionsState.some((sf) => sf.trim() === "")) {
-            errorMessage += "Please enter  all Secondary Functions.\n";
-            isValid = false;
-        }
-
-        // Set error message
-        setError(errorMessage);
-
-        return isValid;
     };
 
     const handleDelete = () => {
@@ -94,6 +49,50 @@ function ProductDetails() {
                 ? prevState.filter((index) => index != selectedIndex)
                 : [...prevState, selectedIndex];
         });
+    };
+
+    const validation = () => {
+        let isValid = true;
+        let errorMessage = "";
+
+        // Check if mainFunction is empty
+        if (mainFunctionRef.current.value.trim() === "") {
+            errorMessage += "Please enter Main Function.\n";
+            isValid = false;
+        }
+
+        // Check if Secondary Function is empty
+        if (secondaryFunctionsState.some((sf) => sf.trim() === "")) {
+            errorMessage += "Please enter  all Secondary Functions.\n";
+            isValid = false;
+        }
+
+        // Set error message
+        setError(errorMessage);
+
+        return isValid;
+    };
+
+    const handleSave = () => {
+        console.log(
+            "Saving data...",
+            mainFunctionRef.current.value,
+            secondaryFunctionsState
+        );
+
+        // Perform validation
+        if (validation()) {
+            dispatch(
+                productActions.addProductDetails({
+                    mainFunction: mainFunctionRef.current.value,
+                    secondaryFunctions: [...secondaryFunctionsState],
+                })
+            );
+            // add product details (main function) data to backend
+            // add product secondary functions data to backend
+        } else {
+            console.log("Validation failed");
+        }
     };
 
     return (
@@ -146,10 +145,10 @@ function ProductDetails() {
                                     <th className={styles.th}>
                                         Secondary function {index + 1}
                                     </th>
-                                    <td className={styles.th}>
+                                    <td className={styles.td}>
                                         <input
-                                            className={styles.input}
                                             type="text"
+                                            className={styles.input}
                                             value={secondaryFunctionState}
                                             onChange={(event) =>
                                                 handleSecondaryFunctionsStateChange(

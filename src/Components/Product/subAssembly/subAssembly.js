@@ -33,6 +33,7 @@ const SubAssembly = () => {
                     fileLocation: fileLocationRef.current.value,
                     id: generateId(nameRef.current.value, "s"),
                     isChildrenNeeded: isChildrenNeededRef.current.value,
+                    isBoughtUp: isBoughtUpRef.current.value,
                 })
             );
         } else {

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import styles from "./product.module.css";
 import AddNewProduct from "./newProduct/AddNewProduct";
 import SubAssembly from "./subAssembly/subAssembly";
@@ -11,7 +11,6 @@ import ProductDetails from "./newProduct/ProductDetails";
 import SubAssemblyDetails from "./subAssembly/subAssemblyDetails";
 
 const Product = () => {
-    const [resetSubassembly, setResetSubassembly] = useState(false);
     const { name, id, currActive, subassemblies, currForm } = useSelector(
         (state) => state.product
     );
@@ -34,21 +33,18 @@ const Product = () => {
             dispatch(productActions.reset());
             dispatch(productActions.setCurrForm("newProduct"));
         }
-        if (formType === "subAssembly") {
-            setResetSubassembly((prevState) => !prevState);
-        }
     }
 
     function displayForm() {
         if (currForm === "newProduct") return <AddNewProduct />;
         else if (currForm === "editProduct") return <EditProduct />;
-        else if (currForm === "subAssembly")
-            return <SubAssembly key={resetSubassembly} />;
+        else if (currForm === "subAssembly") return <SubAssembly />;
         else if (currForm === "components" || currActive.startsWith("c"))
             return <AddComponents />;
         else if (currForm === "productDetails") return <ProductDetails />;
-        else if (currForm === "subAssemblyDetails")
-            return <SubAssemblyDetails />;
+        else if (currForm === "subAssemblyDetails") {
+            return <SubAssemblyDetails key={currActive} />;
+        }
     }
 
     return (
