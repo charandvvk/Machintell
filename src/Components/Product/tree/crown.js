@@ -4,25 +4,35 @@ import classes from "../product.module.css";
 const Crown = ({ product, nodeId, dispatch, generateChildrenNodes }) => {
     const node = product.subassemblies[nodeId] || product.components[nodeId];
     const isAlertDisplayed =
-        nodeId.startsWith("s") && node.addChildren && !node.hasAddedChildren;
+        nodeId.startsWith("s") && node.isChildrenNeeded === "Yes";
     const children = generateChildrenNodes(product, nodeId, dispatch);
+
+    function handleNodeClick() {
+        if (nodeId !== "untitled")
+            dispatch(productActions.setActive(nodeId)) &&
+                dispatch(
+                    productActions.setCurrForm(
+                        nodeId.startsWith("s")
+                            ? "subAssemblyDetails"
+                            : "components"
+                    )
+                );
+    }
+
+    let nodeTextColor;
+    if (nodeId.startsWith("s")) nodeTextColor = "blue";
+    else if (nodeId.startsWith("c")) nodeTextColor = "green";
 
     return (
         <div className={`${classes.border} ${classes.children}`}>
             <div
-                className={`${classes.cursor} ${
-                    product.currActive === nodeId
-                        ? classes.active
-                        : classes.background
+                className={`${nodeId !== "untitled" && classes.cursor} ${
+                    nodeId !== "untitled" &&
+                    (product.currActive === nodeId ? "active" : "background")
                 } ${isAlertDisplayed && classes.subassembly}`}
-                onClick={() =>
-                    nodeId.startsWith("s") &&
-                    dispatch(productActions.setActive(nodeId))
-                }
+                onClick={handleNodeClick}
             >
-                <div
-                    style={{ color: nodeId.startsWith("s") ? "blue" : "green" }}
-                >
+                <div style={{ color: nodeTextColor }}>
                     {/* {`${node.name} - ${nodeId} - ${node.parent}`} */}
                     {node.name}
                 </div>

@@ -7,7 +7,19 @@ const initialState = {
     mainFunction: "",
     secondaryFunctions: [""],
     specifications: [["", "", ""]],
-    subassemblies: {},
+    subassemblies: {
+        untitled: { name: "Untitled", parent: "" },
+        // "": {
+        //     parent: "",
+        //     name: "",
+        //     fileLocation: "",
+        //     isBoughtUp: "No",
+        //     isChildrenNeeded: "No",
+        //     mainFunction: "",
+        //     secondaryFunction: [""],
+        //     specifications: [["", "", ""]],
+        // },
+    },
     components: {},
     currActive: "",
     currForm: "",
@@ -35,22 +47,22 @@ const productSlice = createSlice({
                 ...specification,
             ]);
         },
-        // addSubassemblyName(state) {
-        //     state.name = "Untitled";
-        // },
+        addSubassemblyPlaceholderParent(state) {
+            state.subassemblies.untitled.parent = state.currActive;
+        },
         addSubassembly(state, { payload }) {
-            handleAddChildren(state);
+            handleChildrenNeed(state);
             const subassembly = {
-                name: payload.name,
                 parent: state.currActive,
-                addChildren: payload.addChildren,
+                name: payload.name,
+                isChildrenNeeded: payload.isChildrenNeeded,
             };
-            if (subassembly.addChildren) subassembly.hasAddedChildren = false;
             state.subassemblies[payload.id] = subassembly;
-            state.currActive = payload.id;
+            state.currForm = "";
+            state.currActive = "";
         },
         addComponents(state, { payload }) {
-            handleAddChildren(state);
+            handleChildrenNeed(state);
             const components = payload;
             for (let component of components) {
                 state.components[component[1].value] = {
@@ -58,6 +70,8 @@ const productSlice = createSlice({
                     name: component[0].value,
                 };
             }
+            state.currForm = "";
+            state.currActive = "";
         },
         setActive(state, { payload }) {
             state.currActive = payload;
@@ -79,9 +93,12 @@ export default store;
 
 export const productActions = productSlice.actions;
 
-function handleAddChildren(state) {
+function handleChildrenNeed(state) {
     const { currActive, subassemblies } = state;
-    if (currActive.startsWith("s") && subassemblies[currActive].addChildren) {
-        subassemblies[currActive].hasAddedChildren = true;
+    if (
+        currActive.startsWith("s") &&
+        subassemblies[currActive].isChildrenNeeded === "Yes"
+    ) {
+        subassemblies[currActive].isChildrenNeeded = "added";
     }
 }

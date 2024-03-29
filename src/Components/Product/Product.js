@@ -8,7 +8,7 @@ import Tree from "./tree/tree";
 import { useDispatch, useSelector } from "react-redux";
 import { productActions } from "../../store";
 import ProductDetails from "./newProduct/ProductDetails";
-import MainAssemblies from "./subAssembly/Mainassemblies";
+import SubAssemblyDetails from "./subAssembly/subAssemblyDetails";
 
 const Product = () => {
     const [resetSubassembly, setResetSubassembly] = useState(false);
@@ -19,10 +19,12 @@ const Product = () => {
 
     let isDisabled = true;
     if (currActive) {
-        if (currActive.startsWith("p")) isDisabled = false;
-        else {
-            isDisabled = !subassemblies[currActive].addChildren;
-        }
+        if (
+            currActive.startsWith("p") ||
+            (currActive.startsWith("s") &&
+                subassemblies[currActive].isChildrenNeeded !== "No")
+        )
+            isDisabled = false;
     }
 
     function toggleFormDisplay(formType) {
@@ -45,7 +47,8 @@ const Product = () => {
         else if (currForm === "components" || currActive.startsWith("c"))
             return <AddComponents />;
         else if (currForm === "productDetails") return <ProductDetails />;
-        // else if (currForm === "mainAssemblies") return <SubAssembly />;
+        else if (currForm === "subAssemblyDetails")
+            return <SubAssemblyDetails />;
     }
 
     return (
@@ -95,7 +98,9 @@ const Product = () => {
                         <button
                             type="button"
                             className={`${styles.btn} ${
-                                currForm === "components" && styles.active
+                                currForm === "components" &&
+                                !currActive.startsWith("c") &&
+                                styles.active
                             }`}
                             onClick={() => {
                                 toggleFormDisplay("components");

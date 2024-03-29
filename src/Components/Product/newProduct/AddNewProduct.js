@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import ProductDetails from "./ProductDetails";
 import styles from "../product.module.css";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { productActions } from "../../../store";
 import generateId from "../../../util";
 

@@ -5,14 +5,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { productActions } from "../../../store";
 
 function ProductDetails() {
-    const {
-        name,
-        id,
-        fileLocation,
-        mainFunction,
-        secondaryFunctions,
-        // specifications,
-    } = useSelector((state) => state.product);
+    const { name, id, fileLocation, mainFunction, secondaryFunctions } =
+        useSelector((state) => state.product);
     const dispatch = useDispatch();
     const [error, setError] = useState("");
     const [secondaryFunctionsState, setSecondaryFunctionsState] =
@@ -25,7 +19,7 @@ function ProductDetails() {
         setSecondaryFunctionsState((prevState) => [...prevState, ""]); // Add a new empty secondary function to the state
     };
 
-    const handleSecondaryFunctionStateChange = (value, index) => {
+    const handleSecondaryFunctionsStateChange = (value, index) => {
         setSecondaryFunctionsState((prevState) => {
             const updatedSecondaryFunctionsState = [...prevState];
             updatedSecondaryFunctionsState[index] = value;
@@ -78,12 +72,20 @@ function ProductDetails() {
     };
 
     const handleDelete = () => {
-        setSecondaryFunctionsState((prevState) => {
-            return selectedRows.length
-                ? prevState.filter((_, index) => !selectedRows.includes(index))
-                : prevState.slice(0, -1);
-        });
-        setSelectedRows([]);
+        if (
+            window.confirm(
+                "Are you sure you want to delete selected secondary functions?"
+            )
+        ) {
+            setSecondaryFunctionsState((prevState) => {
+                return selectedRows.length
+                    ? prevState.filter(
+                          (_, index) => !selectedRows.includes(index)
+                      )
+                    : prevState.slice(0, -1);
+            });
+            setSelectedRows([]);
+        }
     };
 
     const toggleRowSelection = (selectedIndex) => {
@@ -150,7 +152,7 @@ function ProductDetails() {
                                             type="text"
                                             value={secondaryFunctionState}
                                             onChange={(event) =>
-                                                handleSecondaryFunctionStateChange(
+                                                handleSecondaryFunctionsStateChange(
                                                     event.target.value,
                                                     index
                                                 )
@@ -179,10 +181,7 @@ function ProductDetails() {
                     <pre>{error}</pre>
                 </div>
             )}
-            <SpecificationDetails
-                productName={name}
-                fileLocation={fileLocation}
-            />
+            <SpecificationDetails />
         </div>
     );
 }

@@ -1,18 +1,20 @@
 import React, { useState } from "react";
 import styles from "../product.module.css";
 
-function MainAssemblies({ SubAssembly, handleInputChange }) {
+function SubAssemblyDetails({ handleInputChange }) {
     const [secondaryFunctions, setSecondaryFunctions] = useState([""]);
     const [selectedRows, setSelectedRows] = useState([]);
 
     const handleAddSecondary = () => {
-        setSecondaryFunctions([...secondaryFunctions, ""]);
+        setSecondaryFunctions((prevState) => [...prevState, ""]); // Add a new empty secondary function to the state
     };
 
-    const handleSecondaryFunctionChange = (index, value) => {
-        const updatedSecondaryFunctions = [...secondaryFunctions];
-        updatedSecondaryFunctions[index] = value;
-        setSecondaryFunctions(updatedSecondaryFunctions);
+    const handleSecondaryFunctionsChange = (value, index) => {
+        setSecondaryFunctions((prevState) => {
+            const updatedSecondaryFunctionsState = [...prevState];
+            updatedSecondaryFunctionsState[index] = value;
+            return updatedSecondaryFunctionsState;
+        });
     };
 
     const handleDelete = () => {
@@ -21,33 +23,26 @@ function MainAssemblies({ SubAssembly, handleInputChange }) {
                 "Are you sure you want to delete selected secondary functions?"
             )
         ) {
-            const updatedSecondaryFunctions = secondaryFunctions.filter(
-                (_, index) => !selectedRows.includes(index)
-            );
-            setSecondaryFunctions(updatedSecondaryFunctions);
+            setSecondaryFunctions((prevState) => {
+                return selectedRows.length
+                    ? prevState.filter(
+                          (_, index) => !selectedRows.includes(index)
+                      )
+                    : prevState.slice(0, -1);
+            });
             setSelectedRows([]);
         }
     };
 
-    const toggleRowSelection = (index) => {
-        const selectedIndex = selectedRows.indexOf(index);
-        if (selectedIndex === -1) {
-            setSelectedRows([...selectedRows, index]);
-        } else {
-            const updatedSelectedRows = [...selectedRows];
-            updatedSelectedRows.splice(selectedIndex, 1);
-            setSelectedRows(updatedSelectedRows);
-        }
+    const toggleRowSelection = (selectedIndex) => {
+        setSelectedRows((prevState) => {
+            return prevState.includes(selectedIndex)
+                ? prevState.filter((index) => index != selectedIndex)
+                : [...prevState, selectedIndex];
+        });
     };
 
-    const isRowSelected = (index) => {
-        return selectedRows.includes(index);
-    };
-
-    const handleSave = () => {
-        SubAssembly.secondaryFunction = secondaryFunctions;
-        console.log(SubAssembly);
-    };
+    const handleSave = () => {};
 
     return (
         <div aria-label="SubAssemblyAdded" className={styles.form}>
@@ -56,38 +51,28 @@ function MainAssemblies({ SubAssembly, handleInputChange }) {
                     <thead>
                         <tr>
                             <th className={styles.th}>Name of sub-assembly</th>
-                            <td className={styles.td}>
-                                {SubAssembly.SubAssemblyName}
-                            </td>
+                            <td className={styles.td}>{}</td>
                         </tr>
                         <tr>
                             <th className={styles.th}>sub-assembly ID</th>
-                            <td className={styles.td}>
-                                {SubAssembly.SubAssemblyId}
-                            </td>
+                            <td className={styles.td}>{}</td>
                         </tr>
                         <tr>
                             <th className={styles.th}>File location</th>
-                            <td className={styles.td}>
-                                {SubAssembly.fileLocation}
-                            </td>
+                            <td className={styles.td}>{}</td>
                         </tr>
                         <tr>
                             <th className={styles.th}>
                                 Is it completely bought up
                             </th>
-                            <td className={styles.td}>
-                                {SubAssembly.isBoughtUp}
-                            </td>
+                            <td className={styles.td}>{}</td>
                         </tr>
                         <tr>
                             <th className={styles.th}>
                                 Do you wish to add its subassemblies/components
                                 information?
                             </th>
-                            <td className={styles.td}>
-                                {SubAssembly.isSubAssemblyComponentsNeeded}
-                            </td>
+                            <td className={styles.td}>{}</td>
                         </tr>
                         <tr>
                             <th className={styles.th}>Main Functions </th>
@@ -95,7 +80,6 @@ function MainAssemblies({ SubAssembly, handleInputChange }) {
                                 <input
                                     type="text"
                                     name="mainFunction"
-                                    value={SubAssembly.mainFunctions}
                                     onChange={(event) => {
                                         handleInputChange(event);
                                     }}
@@ -113,7 +97,9 @@ function MainAssemblies({ SubAssembly, handleInputChange }) {
                             <tr
                                 key={index}
                                 style={{
-                                    backgroundColor: isRowSelected(index)
+                                    backgroundColor: selectedRows.includes(
+                                        index
+                                    )
                                         ? "lightgray"
                                         : "white",
                                 }}
@@ -127,9 +113,9 @@ function MainAssemblies({ SubAssembly, handleInputChange }) {
                                         type="text"
                                         value={secondaryFunction}
                                         onChange={(event) =>
-                                            handleSecondaryFunctionChange(
-                                                index,
-                                                event.target.value
+                                            handleSecondaryFunctionsChange(
+                                                event.target.value,
+                                                index
                                             )
                                         }
                                     />
@@ -161,4 +147,4 @@ function MainAssemblies({ SubAssembly, handleInputChange }) {
     );
 }
 
-export default MainAssemblies;
+export default SubAssemblyDetails;

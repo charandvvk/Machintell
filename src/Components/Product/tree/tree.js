@@ -6,20 +6,24 @@ import Crown from "./crown";
 function Tree() {
     const product = useSelector((state) => state.product);
     const dispatch = useDispatch();
+
+    function handleProductClick() {
+        product.id &&
+            dispatch(productActions.setActive(product.id)) &&
+            dispatch(productActions.setCurrForm("productDetails"));
+    }
+
     return (
         <div className={classes.border}>
             <div
-                className={`${classes.cursor} ${
+                className={`${product.id && classes.cursor} ${
                     product.currActive !== product.id && classes.background
                 } ${
                     product.id &&
                     product.currActive === product.id &&
                     classes.active
                 }`}
-                onClick={() => {
-                    dispatch(productActions.setActive(product.id));
-                    dispatch(productActions.setCurrForm("productDetails"));
-                }}
+                onClick={handleProductClick}
             >
                 {/* {`${product.name} - ${product.id}`} */}
                 {product.name}
@@ -35,9 +39,13 @@ const generateChildrenNodes = (product, nodeId, dispatch) => {
     return Object.keys(product.subassemblies)
         .concat(Object.keys(product.components))
         .filter((id) => {
-            if (id.startsWith("s"))
+            if (
+                id.startsWith("s") ||
+                (product.currForm === "subAssembly" && id === "untitled")
+            )
                 return product.subassemblies[id].parent === nodeId;
-            else return product.components[id].parent === nodeId;
+            else if (id.startsWith("c"))
+                return product.components[id].parent === nodeId;
         })
         .map((child) => (
             <Crown
