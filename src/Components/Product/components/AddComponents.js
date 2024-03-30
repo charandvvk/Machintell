@@ -62,7 +62,7 @@ function AddComponents() {
     const toggleRowSelection = (selectedIndex) => {
         setSelectedRows((prevState) => {
             return prevState.includes(selectedIndex)
-                ? prevState.filter((index) => index != selectedIndex)
+                ? prevState.filter((index) => index !== selectedIndex)
                 : [...prevState, selectedIndex];
         });
     };

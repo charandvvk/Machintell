@@ -9,9 +9,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { productActions } from "../../store";
 import ProductDetails from "./newProduct/ProductDetails";
 import SubAssemblyDetails from "./subAssembly/subAssemblyDetails";
+import DialogBox from "./DialogBox";
 
 const Product = () => {
     const { name, id, currActive, subassemblies, currForm } = useSelector(
+        (state) => state.product
+    );
+    const product= useSelector(
         (state) => state.product
     );
     const dispatch = useDispatch();
@@ -45,8 +49,11 @@ const Product = () => {
         else if (currForm === "subAssemblyDetails") {
             return <SubAssemblyDetails key={currActive} />;
         }
+        else if (currForm === "DialogBox") {
+            return <DialogBox/>
+        }
     }
-
+    console.log(product)
     return (
         <>
             <div className={styles.container}>

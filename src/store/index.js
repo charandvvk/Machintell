@@ -8,7 +8,7 @@ const initialState = {
     secondaryFunctions: [""],
     specifications: [["", "", ""]],
     subassemblies: {
-        untitled: { name: "Untitled", parent: "" },
+        untitled: { name: "Untitled", parent: "",specifications:[["", "", ""]]},
     },
     components: {},
     currActive: "",
@@ -62,6 +62,11 @@ const productSlice = createSlice({
             state.subassemblies[state.currActive].secondaryFunctions = [
                 ...payload.secondaryFunctions,
             ];
+        },
+        addSubAssemblySpecifications(state, { payload }) {
+            state.subassemblies[state.currActive].specifications = payload.map((specification) => [
+                ...specification,
+            ]);
         },
         addComponents(state, { payload }) {
             handleChildrenNeed(state);

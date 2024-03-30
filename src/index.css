@@ -1,0 +1,8 @@
+button{
+    background-color: aliceblue;
+    border-radius: 15px;
+    min-width: 50px;
+}
+button:hover{
+    background-color: aquamarine;
+}
