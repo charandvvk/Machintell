@@ -26,7 +26,8 @@ const productSlice = createSlice({
             state.name = payload.name;
             state.fileLocation = payload.fileLocation;
             state.id = payload.id;
-            state.currForm = "";
+            state.currActive = payload.id;
+            state.currForm = "productDetails";
         },
         addProductDetails(state, { payload }) {
             state.mainFunction = payload.mainFunction;
@@ -52,8 +53,8 @@ const productSlice = createSlice({
                 secondaryFunctions: [""],
             };
             state.subassemblies[payload.id] = subassembly;
-            state.currForm = "";
-            state.currActive = "";
+            state.currActive = payload.id;
+            state.currForm = "subAssemblyDetails";
         },
         addSubassemblyDetails(state, { payload }) {
             state.subassemblies[state.currActive].mainFunction =

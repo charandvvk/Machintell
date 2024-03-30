@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styles from "../product.module.css";
 import { useDispatch } from "react-redux";
 import { productActions } from "../../../store";
@@ -7,9 +7,14 @@ import generateId from "../../../util";
 const SubAssembly = () => {
     const nameRef = useRef();
     const fileLocationRef = useRef();
-    const isBoughtUpRef = useRef();
+    const [isBoughtUp, setIsBoughtUp] = useState("Yes");
     const isChildrenNeededRef = useRef();
     const dispatch = useDispatch();
+
+    const handleIsBoughtUpChange = (e) => {
+        setIsBoughtUp(e.target.value);
+        isChildrenNeededRef.current.value = "No";
+    };
 
     useEffect(() => {
         dispatch(productActions.addSubassemblyPlaceholderParent());
@@ -33,7 +38,7 @@ const SubAssembly = () => {
                     fileLocation: fileLocationRef.current.value,
                     id: generateId(nameRef.current.value, "s"),
                     isChildrenNeeded: isChildrenNeededRef.current.value,
-                    isBoughtUp: isBoughtUpRef.current.value,
+                    isBoughtUp,
                 })
             );
         } else {
@@ -78,7 +83,8 @@ const SubAssembly = () => {
                             <td className={styles.td}>
                                 <select
                                     className={styles.dropdown}
-                                    ref={isBoughtUpRef}
+                                    value={isBoughtUp}
+                                    onChange={handleIsBoughtUpChange}
                                     name="isBoughtUp"
                                 >
                                     <option value="Yes">Yes</option>
@@ -96,9 +102,10 @@ const SubAssembly = () => {
                                     className={styles.dropdown}
                                     ref={isChildrenNeededRef}
                                     name="isSubAssemblyComponentsNeeded"
+                                    disabled={isBoughtUp === "Yes"}
                                 >
-                                    <option value="Yes">Yes</option>
                                     <option value="No">No</option>
+                                    <option value="Yes">Yes</option>
                                 </select>
                             </td>
                         </tr>
