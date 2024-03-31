@@ -6,7 +6,7 @@ import EditProduct from "./editProduct/editProduct";
 import AddComponents from "./components/AddComponents";
 import Tree from "./tree/tree";
 import { useDispatch, useSelector } from "react-redux";
-import { productActions } from "../../store";
+import { backendActions, productActions } from "../../store";
 import ProductDetails from "./newProduct/ProductDetails";
 import SubAssemblyDetails from "./subAssembly/subAssemblyDetails";
 import DialogBox from "./DialogBox";
@@ -15,9 +15,7 @@ const Product = () => {
     const { name, id, currActive, subassemblies, currForm } = useSelector(
         (state) => state.product
     );
-    const product= useSelector(
-        (state) => state.product
-    );
+    const product = useSelector((state) => state.product);
     const dispatch = useDispatch();
 
     let isDisabled = true;
@@ -34,8 +32,13 @@ const Product = () => {
         dispatch(productActions.setCurrForm(formType));
         if (formType === "newProduct" && id) {
             //send the product tree details to the backend
+            dispatch(backendActions.addProduct(product));
             dispatch(productActions.reset());
             dispatch(productActions.setCurrForm("newProduct"));
+        } else if (formType === "editProduct") {
+            if (id) dispatch(backendActions.addProduct(product));
+            dispatch(productActions.reset());
+            dispatch(productActions.setCurrForm("editProduct"));
         }
     }
 
@@ -53,7 +56,7 @@ const Product = () => {
             return <DialogBox/>
         }
     }
-    console.log(product)
+
     return (
         <>
             <div className={styles.container}>

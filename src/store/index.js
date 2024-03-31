@@ -1,5 +1,15 @@
 import { configureStore, createSlice } from "@reduxjs/toolkit";
 
+function handleChildrenNeed(state) {
+    const { currActive, subassemblies } = state;
+    if (
+        currActive.startsWith("s") &&
+        subassemblies[currActive].isChildrenNeeded === "Yes"
+    ) {
+        subassemblies[currActive].isChildrenNeeded = "added";
+    }
+}
+
 const initialState = {
     name: "",
     fileLocation: "",
@@ -88,7 +98,33 @@ const productSlice = createSlice({
             state.currForm = payload;
         },
         reset(state) {
-            Object.assign(state, initialState);
+            Object.assign(state, JSON.parse(JSON.stringify(initialState)));
+        },
+        set(state, { payload }) {
+            const product = JSON.parse(JSON.stringify(payload));
+            product.currActive = "";
+            product.currForm = "";
+            Object.assign(state, product);
+        },
+    },
+});
+
+const backendSlice = createSlice({
+    name: "backend",
+    initialState: { products: [] },
+    reducers: {
+        addProduct(state, { payload }) {
+            const product = JSON.parse(JSON.stringify(payload));
+            const index = state.products.findIndex(
+                (prod) => prod.id === product.id
+            );
+            if (index === -1) state.products.push(product);
+            else state.products[index] = product;
+        },
+        deleteProduct(state, { payload }) {
+            state.products = state.products.filter(
+                (product) => product.id !== payload
+            );
         },
     },
 });
@@ -96,21 +132,11 @@ const productSlice = createSlice({
 const store = configureStore({
     reducer: {
         product: productSlice.reducer,
-        // subassembly: subassemblySlice.reducer,
+        backend: backendSlice.reducer,
     },
 });
 
 export default store;
 
 export const productActions = productSlice.actions;
-// export const subassemblyActions = subassemblySlice.actions;
-
-function handleChildrenNeed(state) {
-    const { currActive, subassemblies } = state;
-    if (
-        currActive.startsWith("s") &&
-        subassemblies[currActive].isChildrenNeeded === "Yes"
-    ) {
-        subassemblies[currActive].isChildrenNeeded = "added";
-    }
-}
+export const backendActions = backendSlice.actions;
