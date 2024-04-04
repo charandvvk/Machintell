@@ -2,7 +2,7 @@ import React from "react";
 import styles from "./product.module.css";
 import AddNewProduct from "./newProduct/AddNewProduct";
 import SubAssembly from "./subAssembly/subAssembly";
-import EditProduct from "./editProduct/editProduct";
+import ManageProducts from "./manageProducts/manageProducts";
 import AddComponents from "./components/AddComponents";
 import Tree from "./tree/tree";
 import { useDispatch, useSelector } from "react-redux";
@@ -35,25 +35,24 @@ const Product = () => {
             dispatch(backendActions.addProduct(product));
             dispatch(productActions.reset());
             dispatch(productActions.setCurrForm("newProduct"));
-        } else if (formType === "editProduct") {
+        } else if (formType === "manageProducts") {
             if (id) dispatch(backendActions.addProduct(product));
             dispatch(productActions.reset());
-            dispatch(productActions.setCurrForm("editProduct"));
+            dispatch(productActions.setCurrForm("manageProducts"));
         }
     }
 
     function displayForm() {
         if (currForm === "newProduct") return <AddNewProduct />;
-        else if (currForm === "editProduct") return <EditProduct />;
+        else if (currForm === "manageProducts") return <ManageProducts />;
         else if (currForm === "subAssembly") return <SubAssembly />;
         else if (currForm === "components")
             return <AddComponents key={currActive} />;
         else if (currForm === "productDetails") return <ProductDetails />;
         else if (currForm === "subAssemblyDetails") {
             return <SubAssemblyDetails key={currActive} />;
-        }
-        else if (currForm === "DialogBox") {
-            return <DialogBox/>
+        } else if (currForm === "DialogBox") {
+            return <DialogBox />;
         }
     }
 
@@ -76,13 +75,13 @@ const Product = () => {
                         <button
                             type="button"
                             className={`${styles.btn} ${
-                                currForm === "editProduct" && styles.active
+                                currForm === "manageProducts" && styles.active
                             }`}
                             onClick={() => {
-                                toggleFormDisplay("editProduct");
+                                toggleFormDisplay("manageProducts");
                             }}
                         >
-                            Edit product
+                            Manage products
                         </button>
                     </div>
                     <div className={styles.columnTitle}>Product Details</div>

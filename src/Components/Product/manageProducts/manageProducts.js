@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { backendActions, productActions } from "../../../store";
 import classes from "../product.module.css";
 
-const EditProduct = () => {
+const ManageProducts = () => {
     const { products } = useSelector((state) => state.backend);
     const dispatch = useDispatch();
     const [selectedId, setSelectedId] = useState("");
@@ -46,4 +46,4 @@ const EditProduct = () => {
     );
 };
 
-export default EditProduct;
+export default ManageProducts;
