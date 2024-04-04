@@ -7,39 +7,58 @@ const ManageProducts = () => {
     const { products } = useSelector((state) => state.backend);
     const dispatch = useDispatch();
     const [selectedId, setSelectedId] = useState("");
+    const [selectedAction, setSelectedAction] = useState(null);
+    const selectedProduct = products.find(
+        (product) => product.id === selectedId
+    );
 
-    const handleEdit = () => {
-        dispatch(
-            productActions.set(
-                products.find((product) => product.id === selectedId)
-            )
-        );
-    };
-
-    const handleDelete = () => {
-        dispatch(backendActions.deleteProduct(selectedId));
+    const handleConfirm = () => {
+        if (selectedAction === "edit")
+            dispatch(productActions.set(selectedProduct));
+        else dispatch(backendActions.deleteProduct(selectedId));
+        setSelectedAction(null);
     };
 
     return (
         <>
-            <div>Select a product to edit or delete:</div>
-            {products.map((product) => (
-                <div
-                    key={product.id}
-                    onClick={() => setSelectedId(product.id)}
-                    className={`${classes.cursor} ${
-                        selectedId === product.id
-                            ? classes.active
-                            : classes.background
-                    }`}
-                >
-                    {product.name}
+            {selectedAction ? (
+                <div>
+                    <div>
+                        Do you want to {selectedAction} {selectedProduct.name}?
+                    </div>
+                    <button onClick={() => setSelectedAction(null)}>
+                        Cancel
+                    </button>
+                    <button onClick={handleConfirm}>Confirm</button>
                 </div>
-            ))}
-            {selectedId && (
+            ) : (
                 <>
-                    <button onClick={handleEdit}>Edit</button>
-                    <button onClick={handleDelete}>Delete</button>
+                    <div>Select a product:</div>
+                    {products.map((product) => (
+                        <div
+                            key={product.id}
+                            onClick={() => setSelectedId(product.id)}
+                            className={`${classes.cursor} ${
+                                selectedId === product.id
+                                    ? classes.active
+                                    : classes.background
+                            }`}
+                        >
+                            {product.name}
+                        </div>
+                    ))}
+                    <button
+                        onClick={() => setSelectedAction("edit")}
+                        disabled={!selectedId}
+                    >
+                        Edit
+                    </button>
+                    <button
+                        onClick={() => setSelectedAction("delete")}
+                        disabled={!selectedId}
+                    >
+                        Delete
+                    </button>
                 </>
             )}
         </>
