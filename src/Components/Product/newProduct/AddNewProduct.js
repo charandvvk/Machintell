@@ -1,17 +1,17 @@
 import React, { useEffect, useRef, useState } from "react";
 import styles from "../product.module.css";
 import { useDispatch } from "react-redux";
-import { productActions } from "../../../store";
+import { backendActions, productActions } from "../../../store";
 import generateId from "../../../util";
 
-function AddNewProduct() {
+function AddNewProduct({ product, onSave }) {
     const nameRef = useRef();
     const fileLocationRef = useRef();
     const [error, setError] = useState("");
     const dispatch = useDispatch();
 
     useEffect(() => {
-        dispatch(productActions.addProductName());
+        if (!product) dispatch(productActions.addProductName());
     }, [dispatch]);
 
     const validation = () => {
@@ -42,13 +42,27 @@ function AddNewProduct() {
         // Perform validation
         if (validation()) {
             // add product data to backend
-            dispatch(
-                productActions.addProduct({
-                    name: nameRef.current.value,
-                    fileLocation: fileLocationRef.current.value,
-                    id: generateId(nameRef.current.value, "p"),
-                })
-            );
+            const name = nameRef.current.value;
+            const fileLocation = fileLocationRef.current.value;
+            const id = generateId(name, "p");
+            if (product) {
+                dispatch(
+                    backendActions.duplicateProduct({
+                        name,
+                        fileLocation,
+                        id,
+                        product,
+                    })
+                );
+                onSave(id);
+            } else
+                dispatch(
+                    productActions.addProduct({
+                        name,
+                        fileLocation,
+                        id,
+                    })
+                );
         } else {
             console.log("Validation failed");
         }
@@ -70,6 +84,7 @@ function AddNewProduct() {
                                         className={styles.input}
                                         type="text"
                                         required
+                                        defaultValue={product && product.name}
                                     />
                                 </td>
                             </tr>
@@ -83,6 +98,9 @@ function AddNewProduct() {
                                         className={styles.input}
                                         type="text"
                                         required
+                                        defaultValue={
+                                            product && product.fileLocation
+                                        }
                                     />
                                 </td>
                             </tr>

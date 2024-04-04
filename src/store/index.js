@@ -18,7 +18,11 @@ const initialState = {
     secondaryFunctions: [""],
     specifications: [["", "", ""]],
     subassemblies: {
-        untitled: { name: "Untitled", parent: "",specifications:[["", "", ""]]},
+        untitled: {
+            name: "Untitled",
+            parent: "",
+            specifications: [["", "", ""]],
+        },
     },
     components: {},
     currActive: "",
@@ -74,9 +78,9 @@ const productSlice = createSlice({
             ];
         },
         addSubAssemblySpecifications(state, { payload }) {
-            state.subassemblies[state.currActive].specifications = payload.map((specification) => [
-                ...specification,
-            ]);
+            state.subassemblies[state.currActive].specifications = payload.map(
+                (specification) => [...specification]
+            );
         },
         addComponents(state, { payload }) {
             handleChildrenNeed(state);
@@ -120,6 +124,13 @@ const backendSlice = createSlice({
             );
             if (index === -1) state.products.push(product);
             else state.products[index] = product;
+        },
+        duplicateProduct(state, { payload }) {
+            const product = JSON.parse(JSON.stringify(payload.product));
+            product.name = payload.name;
+            product.fileLocation = payload.fileLocation;
+            product.id = payload.id;
+            state.products.push(product);
         },
         deleteProduct(state, { payload }) {
             state.products = state.products.filter(
