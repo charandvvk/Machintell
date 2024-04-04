@@ -129,12 +129,7 @@ const Product = () => {
                             {name && <Tree />}
                         </div>
                     </div>
-                    <div className={styles.rightcol}>
-                        <div>{displayForm()}</div>
-                        <div>
-                            {/* {id && currActive === id && <ProductDetails />} */}
-                        </div>
-                    </div>
+                    <div className={styles.rightcol}>{displayForm()}</div>
                 </div>
             </div>
         </>

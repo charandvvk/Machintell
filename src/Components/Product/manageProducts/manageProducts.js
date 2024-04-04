@@ -38,52 +38,60 @@ const ManageProducts = () => {
                         onSave={handleSave}
                     />
                 ) : (
-                    <div>
+                    <div className={classes.modal}>
                         <div>
                             Do you want to {selectedAction}{" "}
                             {selectedProduct.name}?
                         </div>
-                        <button onClick={() => setSelectedAction(null)}>
-                            Cancel
-                        </button>
-                        <button onClick={handleConfirm}>Confirm</button>
+                        <div className={classes.actions}>
+                            <button onClick={() => setSelectedAction(null)}>
+                                Cancel
+                            </button>
+                            <button onClick={handleConfirm}>Confirm</button>
+                        </div>
                     </div>
                 )
             ) : (
-                <>
-                    <div>Select a product:</div>
-                    {products.map((product) => (
-                        <div
-                            key={product.id}
-                            onClick={() => setSelectedId(product.id)}
-                            className={`${classes.cursor} ${
-                                selectedId === product.id
-                                    ? classes.active
-                                    : classes.background
-                            }`}
+                <div className={classes.select}>
+                    <div className={classes.title}>Select a product:</div>
+                    <div className={classes.products}>
+                        {products.map((product) => (
+                            <div
+                                key={product.id}
+                                onClick={() => setSelectedId(product.id)}
+                                className={`${classes.product} ${
+                                    classes.cursor
+                                } ${
+                                    selectedId === product.id
+                                        ? classes.active
+                                        : classes.background
+                                }`}
+                            >
+                                {product.name}
+                            </div>
+                        ))}
+                    </div>
+                    <div className={classes.actions}>
+                        <button
+                            onClick={() => setSelectedAction("edit")}
+                            disabled={!selectedId}
                         >
-                            {product.name}
-                        </div>
-                    ))}
-                    <button
-                        onClick={() => setSelectedAction("edit")}
-                        disabled={!selectedId}
-                    >
-                        Edit
-                    </button>
-                    <button
-                        onClick={() => setSelectedAction("duplicate")}
-                        disabled={!selectedId}
-                    >
-                        Duplicate
-                    </button>
-                    <button
-                        onClick={() => setSelectedAction("delete")}
-                        disabled={!selectedId}
-                    >
-                        Delete
-                    </button>
-                </>
+                            Edit
+                        </button>
+                        <button
+                            onClick={() => setSelectedAction("duplicate")}
+                            disabled={!selectedId}
+                        >
+                            Duplicate
+                        </button>
+                        <button
+                            onClick={() => setSelectedAction("delete")}
+                            disabled={!selectedId}
+                        >
+                            Delete
+                        </button>
+                    </div>
+                </div>
             )}
         </>
     );

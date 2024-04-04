@@ -136,10 +136,9 @@
 
 .btn2 {
     padding: 2px;
-
 }
 
-.savebtn{
+.savebtn {
     float: right;
 }
 /* .buttonGroup{
@@ -181,10 +180,6 @@
     gap: 5px;
 }
 
-.active {
-    background: palegoldenrod;
-}
-
 .alert {
     width: 15px;
     height: 15px;
@@ -194,4 +189,40 @@
 .disabled {
     pointer-events: none;
     color: lightgray;
+}
+
+.products {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.product {
+    background: silver;
+    border: 1px solid black;
+    padding: 5px;
+    min-width: 105px;
+    height: 35px;
+}
+
+.active {
+    background: palegoldenrod;
+}
+
+.actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.select {
+    width: 800px;
+}
+
+.title {
+    margin: 25px 0;
+}
+
+.modal {
+    padding: 15px;
+    width: 800px;
 }
