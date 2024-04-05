@@ -16,6 +16,7 @@ const Product = () => {
         (state) => state.product
     );
     const product = useSelector((state) => state.product);
+    const { products } = useSelector((state) => state.backend);
     const dispatch = useDispatch();
 
     let isDisabled = true;
@@ -80,6 +81,7 @@ const Product = () => {
                             onClick={() => {
                                 toggleFormDisplay("manageProducts");
                             }}
+                            disabled={!products.length && !product.id}
                         >
                             Manage products
                         </button>

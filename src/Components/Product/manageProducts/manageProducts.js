@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { backendActions, productActions } from "../../../store";
 import classes from "../product.module.css";
@@ -21,6 +21,8 @@ const ManageProducts = () => {
         } else {
             dispatch(backendActions.deleteProduct(selectedId));
             setSelectedAction(null);
+            if (products.length === 1)
+                dispatch(productActions.setCurrForm(null));
         }
     };
 
