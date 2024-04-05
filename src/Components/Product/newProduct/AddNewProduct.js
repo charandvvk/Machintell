@@ -9,6 +9,7 @@ function AddNewProduct({ product, onSave }) {
     const fileLocationRef = useRef();
     const [error, setError] = useState("");
     const dispatch = useDispatch();
+    const [warning, setWarning] = useState(null);
 
     useEffect(() => {
         if (!product) dispatch(productActions.addProductName());
@@ -36,31 +37,49 @@ function AddNewProduct({ product, onSave }) {
         return isValid;
     };
 
+    const handleConfirm = () => {
+        const name = nameRef.current.value;
+        const id = generateId(name, "p");
+        dispatch(
+            backendActions.duplicateProduct({
+                name,
+                fileLocation: fileLocationRef.current.value,
+                id,
+                product,
+            })
+        );
+        onSave(id);
+    };
+
     const handleSave = () => {
         console.log("Saving data...");
 
         // Perform validation
+
+        // add product data to backend
         if (validation()) {
-            // add product data to backend
             const name = nameRef.current.value;
             const fileLocation = fileLocationRef.current.value;
-            const id = generateId(name, "p");
             if (product) {
-                dispatch(
-                    backendActions.duplicateProduct({
-                        name,
-                        fileLocation,
-                        id,
-                        product,
-                    })
-                );
-                onSave(id);
+                console.log(name, fileLocation);
+                if (
+                    product.name === name &&
+                    product.fileLocation === fileLocation
+                )
+                    setWarning(
+                        "Do you want to save with same name and file location?"
+                    );
+                else if (product.name === name)
+                    setWarning("Do you want to save with same name?");
+                else if (product.fileLocation === fileLocation)
+                    setWarning("Do you want to save with same file location?");
+                else handleConfirm();
             } else
                 dispatch(
                     productActions.addProduct({
                         name,
                         fileLocation,
-                        id,
+                        id: generateId(name, "p"),
                     })
                 );
         } else {
@@ -69,60 +88,76 @@ function AddNewProduct({ product, onSave }) {
     };
 
     return (
-        <div aria-label="Product Form" className={styles.form}>
-            <form>
-                <div className={styles.tableContainer}>
-                    <table className={styles.table}>
-                        <thead>
-                            <tr>
-                                <th className={styles.th}>
-                                    Name of the Product
-                                </th>
-                                <td className={styles.td}>
-                                    <input
-                                        ref={nameRef}
-                                        className={styles.input}
-                                        type="text"
-                                        required
-                                        defaultValue={product && product.name}
-                                    />
-                                </td>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <th className={styles.th}>File location</th>
-                                <td className={styles.td}>
-                                    <input
-                                        ref={fileLocationRef}
-                                        className={styles.input}
-                                        type="text"
-                                        required
-                                        defaultValue={
-                                            product && product.fileLocation
-                                        }
-                                    />
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <div className={styles.buttonGroup}>
-                        <button
-                            type="button"
-                            className={styles.btn2}
-                            onClick={handleSave}
-                        >
-                            Save
-                        </button>
+        <>
+            {warning && (
+                <div className={styles.modal}>
+                    <div>{warning}</div>
+                    <div className={styles.actions}>
+                        <button onClick={() => setWarning(null)}>Cancel</button>
+                        <button onClick={handleConfirm}>Confirm</button>
                     </div>
                 </div>
-            </form>
-            {error && (
-                <div className={styles.error}>
-                    <pre>{error}</pre>
-                </div>
             )}
-        </div>
+            <div
+                aria-label="Product Form"
+                className={`${styles.form} ${warning && styles.hidden}`}
+            >
+                <form>
+                    <div className={styles.tableContainer}>
+                        <table className={styles.table}>
+                            <thead>
+                                <tr>
+                                    <th className={styles.th}>
+                                        Name of the Product
+                                    </th>
+                                    <td className={styles.td}>
+                                        <input
+                                            ref={nameRef}
+                                            className={styles.input}
+                                            type="text"
+                                            required
+                                            defaultValue={
+                                                product && product.name
+                                            }
+                                        />
+                                    </td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th className={styles.th}>File location</th>
+                                    <td className={styles.td}>
+                                        <input
+                                            ref={fileLocationRef}
+                                            className={styles.input}
+                                            type="text"
+                                            required
+                                            defaultValue={
+                                                product && product.fileLocation
+                                            }
+                                        />
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div className={styles.buttonGroup}>
+                            <button
+                                type="button"
+                                className={styles.btn2}
+                                onClick={handleSave}
+                            >
+                                Save
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                {error && (
+                    <div className={styles.error}>
+                        <pre>{error}</pre>
+                    </div>
+                )}
+            </div>
+        </>
     );
 }
 
