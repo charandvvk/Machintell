@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import styles from "./product.module.css";
 import AddNewProduct from "./newProduct/AddNewProduct";
 import SubAssembly from "./subAssembly/subAssembly";
@@ -12,36 +12,49 @@ import SubAssemblyDetails from "./subAssembly/subAssemblyDetails";
 import DialogBox from "./DialogBox";
 
 const Product = () => {
-    const { name, id, currActive, subassemblies, currForm } = useSelector(
-        (state) => state.product
-    );
+    const { name, currActive, subassemblies, currForm, mainFunction } =
+        useSelector((state) => state.product);
     const product = useSelector((state) => state.product);
     const { products } = useSelector((state) => state.backend);
     const dispatch = useDispatch();
+    const [warningFor, setWarningFor] = useState(null);
 
     let isDisabled = true;
     if (currActive) {
         if (
-            currActive.startsWith("p") ||
+            (currActive.startsWith("p") && mainFunction) ||
             (currActive.startsWith("s") &&
                 subassemblies[currActive].isChildrenNeeded !== "No")
         )
             isDisabled = false;
     }
 
-    function toggleFormDisplay(formType) {
-        dispatch(productActions.setCurrForm(formType));
-        if (formType === "newProduct" && id) {
+    const toggleFormDisplay = (formType) => {
+        if (formType === "newProduct" && mainFunction) {
             //send the product tree details to the backend
             dispatch(backendActions.addProduct(product));
             dispatch(productActions.reset());
-            dispatch(productActions.setCurrForm("newProduct"));
         } else if (formType === "manageProducts") {
-            if (id) dispatch(backendActions.addProduct(product));
+            if (mainFunction) dispatch(backendActions.addProduct(product));
             dispatch(productActions.reset());
-            dispatch(productActions.setCurrForm("manageProducts"));
         }
+        dispatch(productActions.setCurrForm(formType));
+    };
+
+    function handleToggleFormType(formType) {
+        if (
+            (formType === "newProduct" || formType === "manageProducts") &&
+            currActive.startsWith("p") &&
+            !mainFunction
+        )
+            setWarningFor(formType);
+        else toggleFormDisplay(formType);
     }
+
+    const handleConfirm = (formType) => {
+        setWarningFor(null);
+        toggleFormDisplay(formType);
+    };
 
     function displayForm() {
         if (currForm === "newProduct") return <AddNewProduct />;
@@ -68,7 +81,7 @@ const Product = () => {
                                 currForm === "newProduct" && styles.active
                             }`}
                             onClick={() => {
-                                toggleFormDisplay("newProduct");
+                                handleToggleFormType("newProduct");
                             }}
                         >
                             Add new product
@@ -79,9 +92,9 @@ const Product = () => {
                                 currForm === "manageProducts" && styles.active
                             }`}
                             onClick={() => {
-                                toggleFormDisplay("manageProducts");
+                                handleToggleFormType("manageProducts");
                             }}
-                            disabled={!products.length && !product.id}
+                            disabled={!products.length && !mainFunction}
                         >
                             Manage products
                         </button>
@@ -96,7 +109,7 @@ const Product = () => {
                                 currForm === "subAssembly" && styles.active
                             }`}
                             onClick={() => {
-                                toggleFormDisplay("subAssembly");
+                                handleToggleFormType("subAssembly");
                             }}
                             disabled={isDisabled}
                         >
@@ -110,7 +123,7 @@ const Product = () => {
                                 styles.active
                             }`}
                             onClick={() => {
-                                toggleFormDisplay("components");
+                                handleToggleFormType("components");
                             }}
                             disabled={isDisabled}
                         >
@@ -131,7 +144,35 @@ const Product = () => {
                             {name && <Tree />}
                         </div>
                     </div>
-                    <div className={styles.rightcol}>{displayForm()}</div>
+                    <div className={styles.rightcol}>
+                        {warningFor && (
+                            <div className={styles.modal}>
+                                <div>
+                                    Do you want to{" "}
+                                    {warningFor === "newProduct"
+                                        ? "add a new product"
+                                        : "manage products"}{" "}
+                                    without saving {name}? If yes, {name}{" "}
+                                    details will be lost.
+                                </div>
+                                <div className={styles.actions}>
+                                    <button onClick={() => setWarningFor(null)}>
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={() =>
+                                            handleConfirm(warningFor)
+                                        }
+                                    >
+                                        Confirm
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                        <div className={warningFor ? styles.hidden : ""}>
+                            {displayForm()}
+                        </div>
+                    </div>
                 </div>
             </div>
         </>
