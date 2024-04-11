@@ -21,7 +21,7 @@ function ProductDetails() {
     const [saveBtnClick, setSavebtnClick] = useState(false); // State to track save button click
     const [isSpecsFormVisible, setIsSpecsFormVisbile] = useState(
         specifications.length
-    ); // State to track save button click
+    );
     const mainFunctionRef = useRef();
 
     const handleOpenSpecsForm = () => {

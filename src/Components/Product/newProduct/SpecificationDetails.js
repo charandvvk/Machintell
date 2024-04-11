@@ -9,14 +9,15 @@ function SpecificationDetails({ type, setIsSpecsFormVisbile }) {
     const [error, seterror] = useState("");
     const dispatch = useDispatch();
     const product = useSelector((state) => state.product);
+    const { subassemblies, currActive } = product;
     const specifications =
         type === "product"
             ? product.specifications.length
                 ? product.specifications
                 : [["", "", ""]]
-            : product.subassemblies[product.currActive]?.specifications || [
-                  ["", "", ""],
-              ];
+            : subassemblies[currActive].specifications.length
+            ? subassemblies[currActive].specifications
+            : [["", "", ""]];
     const [specificationsState, setSpecificationsState] =
         useState(specifications);
     const [saveBtnClick, setSavebtnClick] = useState(false); // State to track save button click
@@ -114,7 +115,7 @@ function SpecificationDetails({ type, setIsSpecsFormVisbile }) {
                 onDeleteRow={handleDeleteRow}
                 onInputChange={handleInputChange}
                 toggleRowSelection={toggleRowSelection}
-                id={product.id}
+                id={product.currActive}
                 saveBtnClick={saveBtnClick}
                 setSavebtnClick={setSavebtnClick}
             />

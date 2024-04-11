@@ -13,14 +13,24 @@ function SubAssemblyDetails() {
         isChildrenNeeded,
         mainFunction,
         secondaryFunctions,
+        specifications,
     } = subassemblies[currActive];
     const dispatch = useDispatch();
     const [error, setError] = useState("");
     const [secondaryFunctionsState, setSecondaryFunctionsState] =
         useState(secondaryFunctions);
+    console.log(secondaryFunctionsState);
     const [selectedRows, setSelectedRows] = useState([]);
     const mainFunctionRef = useRef();
     const [saveBtnClick, setSavebtnClick] = useState(false); // State to track save button click
+    const [isSpecsFormVisible, setIsSpecsFormVisbile] = useState(
+        specifications.length
+    );
+
+    const handleOpenSpecsForm = () => {
+        setIsSpecsFormVisbile(true);
+    };
+
     const handleAddSecondary = () => {
         setSecondaryFunctionsState((prevState) => [...prevState, ""]); // Add a new empty secondary function to the state
     };
@@ -211,30 +221,53 @@ function SubAssemblyDetails() {
                         </tbody>
                     )}
                 </table>
+                {!saveBtnClick && (
+                    <div>
+                        <button
+                            className={styles.btn}
+                            onClick={handleAddSecondary}
+                        >
+                            +
+                        </button>
 
-                <div>
-                    <button className={styles.btn} onClick={handleAddSecondary}>
-                        +
-                    </button>
+                        {secondaryFunctionsState.length ? (
+                            <button
+                                className={styles.btn}
+                                onClick={handleDelete}
+                            >
+                                -
+                            </button>
+                        ) : null}
 
-                    <button className={styles.btn} onClick={handleDelete}>
-                        -
-                    </button>
-
-                    <button
-                        className={`${styles.savebtn} ${styles.btn}`}
-                        onClick={handleSave}
-                    >
-                        Save
-                    </button>
-                </div>
+                        <button
+                            className={`${styles.savebtn} ${styles.btn}`}
+                            onClick={handleSave}
+                        >
+                            Save
+                        </button>
+                    </div>
+                )}
             </div>
             {error && (
                 <div className={styles.error}>
                     <pre>{error}</pre>
                 </div>
             )}
-            <SpecificationDetails type={"subAssembly"} />
+            {isSpecsFormVisible ? (
+                <SpecificationDetails
+                    type={"subAssembly"}
+                    setIsSpecsFormVisbile={setIsSpecsFormVisbile}
+                />
+            ) : (
+                <div>
+                    <button
+                        className={`${styles.savebtn} ${styles.btn}`}
+                        onClick={handleOpenSpecsForm}
+                    >
+                        Add specification
+                    </button>
+                </div>
+            )}
         </div>
     );
 }

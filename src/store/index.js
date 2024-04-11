@@ -11,7 +11,6 @@ const initialState = {
         untitled: {
             name: "Untitled",
             parent: "",
-            specifications: [["", "", ""]],
         },
     },
     components: {},
@@ -53,7 +52,8 @@ const productSlice = createSlice({
                 fileLocation: payload.fileLocation,
                 isBoughtUp: payload.isBoughtUp,
                 mainFunction: "",
-                secondaryFunctions: [""],
+                secondaryFunctions: [],
+                specifications: [],
             };
             state.subassemblies[payload.id] = subassembly;
             state.currActive = payload.id;
