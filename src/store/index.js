@@ -15,8 +15,8 @@ const initialState = {
     fileLocation: "",
     id: "",
     mainFunction: "",
-    secondaryFunctions: [""],
-    specifications: [["", "", ""]],
+    secondaryFunctions: [],
+    specifications: [],
     subassemblies: {
         untitled: {
             name: "Untitled",

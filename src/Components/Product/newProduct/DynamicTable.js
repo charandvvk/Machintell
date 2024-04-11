@@ -7,6 +7,9 @@ function DynamicTable({
     onInputChange,
     selectedRows,
     toggleRowSelection,
+    id,
+    saveBtnClick,
+    setSavebtnClick,
 }) {
     const renderCell = (cell, rowIndex, cellIndex) => {
         // console.log(cell);
@@ -30,32 +33,51 @@ function DynamicTable({
         <table className={styles.table}>
             <thead>
                 <tr>
-                    {headers.map((header) => (
-                        <th className={styles.th} key={header}>
-                            {header}
-                        </th>
-                    ))}
+                    <th className={styles.th} colSpan={3}>
+                        Specifications of {id}
+                    </th>
+                    <td>
+                        {saveBtnClick && (
+                            <button
+                                className={styles.btn}
+                                onClick={() => setSavebtnClick(false)}
+                            >
+                                +
+                            </button>
+                        )}
+                    </td>
                 </tr>
-            </thead>
-            <tbody>
-                {data.map((row, rowIndex) => (
-                    <tr
-                        key={rowIndex}
-                        style={{
-                            backgroundColor: selectedRows.includes(rowIndex)
-                                ? "lightgray"
-                                : "white",
-                        }}
-                        onClick={() => toggleRowSelection(rowIndex)}
-                    >
-                        {row.map((cell, cellIndex) => (
-                            <td className={styles.td} key={cellIndex}>
-                                {renderCell(cell, rowIndex, cellIndex)}
-                            </td>
+                {!saveBtnClick && (
+                    <tr>
+                        {headers.map((header) => (
+                            <th className={styles.th} key={header}>
+                                {header}
+                            </th>
                         ))}
                     </tr>
-                ))}
-            </tbody>
+                )}
+            </thead>
+            {!saveBtnClick && (
+                <tbody>
+                    {data.map((row, rowIndex) => (
+                        <tr
+                            key={rowIndex}
+                            style={{
+                                backgroundColor: selectedRows.includes(rowIndex)
+                                    ? "lightgray"
+                                    : "white",
+                            }}
+                            onClick={() => toggleRowSelection(rowIndex)}
+                        >
+                            {row.map((cell, cellIndex) => (
+                                <td className={styles.td} key={cellIndex}>
+                                    {renderCell(cell, rowIndex, cellIndex)}
+                                </td>
+                            ))}
+                        </tr>
+                    ))}
+                </tbody>
+            )}
         </table>
     );
 }
