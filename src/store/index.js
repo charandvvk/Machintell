@@ -1,15 +1,5 @@
 import { configureStore, createSlice } from "@reduxjs/toolkit";
 
-function handleChildrenNeed(state) {
-    const { currActive, subassemblies } = state;
-    if (
-        currActive.startsWith("s") &&
-        subassemblies[currActive].isChildrenNeeded === "Yes"
-    ) {
-        subassemblies[currActive].isChildrenNeeded = "added";
-    }
-}
-
 const initialState = {
     name: "",
     fileLocation: "",
@@ -56,7 +46,6 @@ const productSlice = createSlice({
             state.subassemblies.untitled.parent = state.currActive;
         },
         addSubassembly(state, { payload }) {
-            handleChildrenNeed(state);
             const subassembly = {
                 parent: state.currActive,
                 name: payload.name,
@@ -71,6 +60,13 @@ const productSlice = createSlice({
             state.currForm = "subAssemblyDetails";
         },
         addSubassemblyDetails(state, { payload }) {
+            const { currActive, subassemblies } = state;
+            const parentId = subassemblies[currActive].parent;
+            if (
+                parentId.startsWith("s") &&
+                subassemblies[parentId].isChildrenNeeded === "Yes"
+            )
+                subassemblies[parentId].isChildrenNeeded = "added";
             state.subassemblies[state.currActive].mainFunction =
                 payload.mainFunction;
             state.subassemblies[state.currActive].secondaryFunctions = [
@@ -83,7 +79,12 @@ const productSlice = createSlice({
             );
         },
         addComponents(state, { payload }) {
-            handleChildrenNeed(state);
+            const { currActive, subassemblies } = state;
+            if (
+                currActive.startsWith("s") &&
+                subassemblies[currActive].isChildrenNeeded === "Yes"
+            )
+                subassemblies[currActive].isChildrenNeeded = "added";
             for (let component of payload) {
                 state.components[component[1]] = {
                     parent: state.currActive,

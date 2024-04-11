@@ -12,30 +12,44 @@ import SubAssemblyDetails from "./subAssembly/subAssemblyDetails";
 import DialogBox from "./DialogBox";
 
 const Product = () => {
-    const { name, currActive, subassemblies, currForm, mainFunction } =
-        useSelector((state) => state.product);
     const product = useSelector((state) => state.product);
+    const { name, currActive, subassemblies, currForm, mainFunction } = product;
+    const subassembly = subassemblies[currActive];
     const { products } = useSelector((state) => state.backend);
     const dispatch = useDispatch();
     const [warningFor, setWarningFor] = useState(null);
+    let itemNotSaved;
 
     let isDisabled = true;
     if (currActive) {
         if (
             (currActive.startsWith("p") && mainFunction) ||
             (currActive.startsWith("s") &&
-                subassemblies[currActive].isChildrenNeeded !== "No")
+                subassembly.isChildrenNeeded !== "No" &&
+                subassembly.mainFunction)
         )
             isDisabled = false;
     }
 
     const toggleFormDisplay = (formType) => {
-        if (formType === "newProduct" && mainFunction) {
+        if (formType === "newProduct") {
             //send the product tree details to the backend
-            dispatch(backendActions.addProduct(product));
-            dispatch(productActions.reset());
+            if (currActive.startsWith("s") && !subassembly.mainFunction) {
+                const productCopy = JSON.parse(JSON.stringify(product));
+                delete productCopy.subassemblies[currActive];
+                dispatch(backendActions.addProduct(productCopy));
+                dispatch(productActions.reset());
+            } else if (mainFunction) {
+                dispatch(backendActions.addProduct(product));
+                dispatch(productActions.reset());
+            }
         } else if (formType === "manageProducts") {
-            if (mainFunction) dispatch(backendActions.addProduct(product));
+            if (currActive.startsWith("s") && !subassembly.mainFunction) {
+                const productCopy = JSON.parse(JSON.stringify(product));
+                delete productCopy.subassemblies[currActive];
+                dispatch(backendActions.addProduct(productCopy));
+            } else if (mainFunction)
+                dispatch(backendActions.addProduct(product));
             dispatch(productActions.reset());
         }
         dispatch(productActions.setCurrForm(formType));
@@ -44,11 +58,12 @@ const Product = () => {
     function handleToggleFormType(formType) {
         if (
             (formType === "newProduct" || formType === "manageProducts") &&
-            currActive.startsWith("p") &&
-            !mainFunction
-        )
+            ((currActive.startsWith("p") && !mainFunction) ||
+                (currActive.startsWith("s") && !subassembly.mainFunction))
+        ) {
             setWarningFor(formType);
-        else toggleFormDisplay(formType);
+            itemNotSaved = currActive.startsWith("p") ? name : subassembly.name;
+        } else toggleFormDisplay(formType);
     }
 
     const handleConfirm = (formType) => {
@@ -152,8 +167,8 @@ const Product = () => {
                                     {warningFor === "newProduct"
                                         ? "add a new product"
                                         : "manage products"}{" "}
-                                    without saving {name}? If yes, {name}{" "}
-                                    details will be lost.
+                                    without saving {itemNotSaved}? If yes,{" "}
+                                    {itemNotSaved} details will be lost.
                                 </div>
                                 <div className={styles.actions}>
                                     <button onClick={() => setWarningFor(null)}>
