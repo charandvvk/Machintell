@@ -7,14 +7,9 @@ import generateId from "../../../util";
 const SubAssembly = () => {
     const nameRef = useRef();
     const fileLocationRef = useRef();
-    const [isBoughtUp, setIsBoughtUp] = useState("Yes");
+    const isBoughtUpRef = useRef();
     const isChildrenNeededRef = useRef();
     const dispatch = useDispatch();
-
-    const handleIsBoughtUpChange = (e) => {
-        setIsBoughtUp(e.target.value);
-        isChildrenNeededRef.current.value = "No";
-    };
 
     useEffect(() => {
         dispatch(productActions.addSubassemblyPlaceholderParent());
@@ -38,7 +33,7 @@ const SubAssembly = () => {
                     fileLocation: fileLocationRef.current.value,
                     id: generateId(nameRef.current.value, "s"),
                     isChildrenNeeded: isChildrenNeededRef.current.value,
-                    isBoughtUp,
+                    isBoughtUp: isBoughtUpRef.current.value,
                 })
             );
         } else {
@@ -83,8 +78,7 @@ const SubAssembly = () => {
                             <td className={styles.td}>
                                 <select
                                     className={styles.dropdown}
-                                    value={isBoughtUp}
-                                    onChange={handleIsBoughtUpChange}
+                                    ref={isBoughtUpRef}
                                     name="isBoughtUp"
                                 >
                                     <option value="Yes">Yes</option>
@@ -102,7 +96,6 @@ const SubAssembly = () => {
                                     className={styles.dropdown}
                                     ref={isChildrenNeededRef}
                                     name="isSubAssemblyComponentsNeeded"
-                                    disabled={isBoughtUp === "Yes"}
                                 >
                                     <option value="No">No</option>
                                     <option value="Yes">Yes</option>

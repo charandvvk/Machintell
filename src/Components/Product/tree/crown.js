@@ -4,7 +4,9 @@ import classes from "../product.module.css";
 const Crown = ({ product, nodeId, dispatch, generateChildrenNodes }) => {
     const node = product.subassemblies[nodeId] || product.components[nodeId];
     const isAlertDisplayed =
-        nodeId.startsWith("s") && node.isChildrenNeeded === "Yes";
+        nodeId.startsWith("s") &&
+        node.isChildrenNeeded === "Yes" &&
+        node.mainFunction;
     const children = generateChildrenNodes(product, nodeId, dispatch);
 
     function handleNodeClick() {
