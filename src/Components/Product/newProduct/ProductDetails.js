@@ -23,6 +23,8 @@ function ProductDetails() {
         specifications.length
     );
     const mainFunctionRef = useRef();
+    const nameRef = useRef();
+    const fileLocationRef = useRef();
 
     const handleOpenSpecsForm = () => {
         setIsSpecsFormVisbile(true);
@@ -96,6 +98,8 @@ function ProductDetails() {
         if (validation()) {
             dispatch(
                 productActions.addProductDetails({
+                    name: nameRef.current.value,
+                    fileLocation: fileLocationRef.current.value,
                     mainFunction: mainFunctionRef.current.value,
                     secondaryFunctions: [...secondaryFunctionsState],
                 })
@@ -115,7 +119,14 @@ function ProductDetails() {
                     <thead>
                         <tr>
                             <th className={styles.th}>Name of the Product</th>
-                            <td className={styles.td}>{name}</td>
+                            <td className={styles.td}>
+                                <input
+                                    type="text"
+                                    className={styles.input}
+                                    defaultValue={name}
+                                    ref={nameRef}
+                                />
+                            </td>
                             <td>
                                 {saveBtnClick && (
                                     <button
@@ -136,7 +147,12 @@ function ProductDetails() {
                                 <tr>
                                     <th className={styles.th}>File location</th>
                                     <td className={styles.td}>
-                                        {fileLocation}
+                                        <input
+                                            type="text"
+                                            className={styles.input}
+                                            defaultValue={fileLocation}
+                                            ref={fileLocationRef}
+                                        />
                                     </td>
                                 </tr>
                                 <tr>

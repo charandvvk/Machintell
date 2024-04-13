@@ -19,9 +19,12 @@ function SubAssemblyDetails() {
     const [error, setError] = useState("");
     const [secondaryFunctionsState, setSecondaryFunctionsState] =
         useState(secondaryFunctions);
-    console.log(secondaryFunctionsState);
     const [selectedRows, setSelectedRows] = useState([]);
     const mainFunctionRef = useRef();
+    const nameRef = useRef();
+    const fileLocationRef = useRef();
+    const isBoughtUpRef = useRef();
+    const isChildrenNeededRef = useRef();
     const [saveBtnClick, setSavebtnClick] = useState(false); // State to track save button click
     const [isSpecsFormVisible, setIsSpecsFormVisbile] = useState(
         specifications.length
@@ -101,6 +104,11 @@ function SubAssemblyDetails() {
         if (validation()) {
             dispatch(
                 productActions.addSubassemblyDetails({
+                    name: nameRef.current.value,
+                    fileLocation: fileLocationRef.current.value,
+                    mainFunction: mainFunctionRef.current.value,
+                    isBoughtUp: isBoughtUpRef.current.value,
+                    isChildrenNeeded: isChildrenNeededRef.current.value,
                     mainFunction: mainFunctionRef.current.value,
                     secondaryFunctions: [...secondaryFunctionsState],
                 })
@@ -120,7 +128,14 @@ function SubAssemblyDetails() {
                     <thead>
                         <tr>
                             <th className={styles.th}>Name of sub-assembly</th>
-                            <td className={styles.td}>{name}</td>
+                            <td className={styles.td}>
+                                <input
+                                    type="text"
+                                    className={styles.input}
+                                    defaultValue={name}
+                                    ref={nameRef}
+                                />
+                            </td>
                             <td>
                                 {saveBtnClick && (
                                     <button
@@ -143,14 +158,29 @@ function SubAssemblyDetails() {
                                 <tr>
                                     <th className={styles.th}>File location</th>
                                     <td className={styles.td}>
-                                        {fileLocation}
+                                        <input
+                                            type="text"
+                                            className={styles.input}
+                                            defaultValue={fileLocation}
+                                            ref={fileLocationRef}
+                                        />
                                     </td>
                                 </tr>
                                 <tr>
                                     <th className={styles.th}>
                                         Is it completely bought up
                                     </th>
-                                    <td className={styles.td}>{isBoughtUp}</td>
+                                    <td className={styles.td}>
+                                        <select
+                                            className={styles.dropdown}
+                                            ref={isBoughtUpRef}
+                                            defaultValue={isBoughtUp}
+                                            name="isBoughtUp"
+                                        >
+                                            <option value="Yes">Yes</option>
+                                            <option value="No">No</option>
+                                        </select>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <th className={styles.th}>
@@ -158,7 +188,19 @@ function SubAssemblyDetails() {
                                         subassemblies/components information?
                                     </th>
                                     <td className={styles.td}>
-                                        {isChildrenNeeded}
+                                        <select
+                                            className={styles.dropdown}
+                                            ref={isChildrenNeededRef}
+                                            defaultValue={
+                                                isChildrenNeeded !== "No"
+                                                    ? "Yes"
+                                                    : "No"
+                                            }
+                                            name="isSubAssemblyComponentsNeeded"
+                                        >
+                                            <option value="No">No</option>
+                                            <option value="Yes">Yes</option>
+                                        </select>
                                     </td>
                                 </tr>
                                 <tr>

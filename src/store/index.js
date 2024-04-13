@@ -18,6 +18,9 @@ const initialState = {
     currForm: "",
 };
 
+const isParentOf = (items, currActive) =>
+    Object.values(items).find((value) => value.parent === currActive);
+
 const productSlice = createSlice({
     name: "product",
     initialState,
@@ -35,6 +38,8 @@ const productSlice = createSlice({
         addProductDetails(state, { payload }) {
             state.mainFunction = payload.mainFunction;
             state.secondaryFunctions = [...payload.secondaryFunctions];
+            state.name = payload.name;
+            state.fileLocation = payload.fileLocation;
         },
         addProductSpecifications(state, { payload }) {
             state.specifications = payload.map((specification) => [
@@ -60,18 +65,34 @@ const productSlice = createSlice({
             state.currForm = "subAssemblyDetails";
         },
         addSubassemblyDetails(state, { payload }) {
-            const { currActive, subassemblies } = state;
-            const parentId = subassemblies[currActive].parent;
+            const { subassemblies, currActive, components } = state;
+            const subassembly = subassemblies[currActive];
+            const parentId = subassembly.parent;
             if (
                 parentId.startsWith("s") &&
                 subassemblies[parentId].isChildrenNeeded === "Yes"
             )
                 subassemblies[parentId].isChildrenNeeded = "added";
-            state.subassemblies[state.currActive].mainFunction =
-                payload.mainFunction;
-            state.subassemblies[state.currActive].secondaryFunctions = [
-                ...payload.secondaryFunctions,
-            ];
+            subassembly.name = payload.name;
+            subassembly.fileLocation = payload.fileLocation;
+            subassembly.mainFunction = payload.mainFunction;
+            subassembly.secondaryFunctions = [...payload.secondaryFunctions];
+            subassembly.isBoughtUp = payload.isBoughtUp;
+            if (
+                subassembly.isChildrenNeeded !== "No" &&
+                payload.isChildrenNeeded === "No"
+            )
+                subassembly.isChildrenNeeded = "No";
+            else if (
+                subassembly.isChildrenNeeded === "No" &&
+                payload.isChildrenNeeded === "Yes"
+            ) {
+                subassembly.isChildrenNeeded =
+                    isParentOf(subassemblies, currActive) ||
+                    isParentOf(components, currActive)
+                        ? "added"
+                        : "Yes";
+            }
         },
         addSubAssemblySpecifications(state, { payload }) {
             state.subassemblies[state.currActive].specifications = payload.map(
