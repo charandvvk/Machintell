@@ -1,10 +1,10 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import SpecificationDetails from "./SpecificationDetails";
 import styles from "../product.module.css";
 import { useDispatch, useSelector } from "react-redux";
 import { productActions } from "../../../store";
 
-function ProductDetails() {
+function ProductDetails({ setWarningFor }) {
     const {
         name,
         id,
@@ -25,6 +25,10 @@ function ProductDetails() {
     const mainFunctionRef = useRef();
     const nameRef = useRef();
     const fileLocationRef = useRef();
+
+    useEffect(() => {
+        setWarningFor(null);
+    }, []);
 
     const handleOpenSpecsForm = () => {
         setIsSpecsFormVisbile(true);

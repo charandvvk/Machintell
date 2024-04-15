@@ -1,10 +1,10 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import styles from "../product.module.css";
 import { productActions } from "../../../store";
 import { useDispatch, useSelector } from "react-redux";
 import SpecificationDetails from "../newProduct/SpecificationDetails";
 
-function SubAssemblyDetails() {
+function SubAssemblyDetails({ setWarningFor }) {
     const { subassemblies, currActive } = useSelector((state) => state.product);
     const {
         name,
@@ -29,6 +29,10 @@ function SubAssemblyDetails() {
     const [isSpecsFormVisible, setIsSpecsFormVisbile] = useState(
         specifications.length
     );
+
+    useEffect(() => {
+        setWarningFor(null);
+    }, []);
 
     const handleOpenSpecsForm = () => {
         setIsSpecsFormVisbile(true);
@@ -94,11 +98,11 @@ function SubAssemblyDetails() {
     };
 
     const handleSave = () => {
-        console.log(
-            "Saving data...",
-            mainFunctionRef.current.value,
-            secondaryFunctionsState
-        );
+        // console.log(
+        //     "Saving data...",
+        //     mainFunctionRef.current.value,
+        //     secondaryFunctionsState
+        // );
 
         // Perform validation
         if (validation()) {
@@ -117,7 +121,7 @@ function SubAssemblyDetails() {
             // add subassembly details (main function) data to backend
             // add subassembly secondary functions data to backend
         } else {
-            console.log("Validation failed");
+            // console.log("Validation failed");
         }
     };
 

@@ -4,12 +4,16 @@ import { useDispatch } from "react-redux";
 import { backendActions, productActions } from "../../../store";
 import generateId from "../../../util";
 
-function AddNewProduct({ product, onSave }) {
+function AddNewProduct({ product, onSave, setWarningFor }) {
     const nameRef = useRef();
     const fileLocationRef = useRef();
     const [error, setError] = useState("");
     const dispatch = useDispatch();
     const [warning, setWarning] = useState(null);
+
+    useEffect(() => {
+        setWarningFor(null);
+    }, []);
 
     useEffect(() => {
         if (!product) dispatch(productActions.addProductName());

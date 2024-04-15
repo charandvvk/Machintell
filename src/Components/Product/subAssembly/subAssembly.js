@@ -1,10 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import styles from "../product.module.css";
 import { useDispatch } from "react-redux";
 import { productActions } from "../../../store";
 import generateId from "../../../util";
 
-const SubAssembly = () => {
+const SubAssembly = ({ setWarningFor }) => {
     const nameRef = useRef();
     const fileLocationRef = useRef();
     const isBoughtUpRef = useRef();
@@ -12,7 +12,14 @@ const SubAssembly = () => {
     const dispatch = useDispatch();
 
     useEffect(() => {
+        setWarningFor(null);
+    }, []);
+
+    useEffect(() => {
         dispatch(productActions.addSubassemblyPlaceholderParent());
+        return () => {
+            dispatch(productActions.removeSubassemblyPlaceholderParent());
+        };
     }, [dispatch]);
 
     const validation = () => {

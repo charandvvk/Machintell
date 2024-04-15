@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import DynamicTable from "./DynamicTable";
 import styles from "../product.module.css";
 import generateId from "../../../util";
 import { useDispatch, useSelector } from "react-redux";
 import { productActions } from "../../../store";
 
-function AddComponents() {
+function AddComponents({ setWarningFor }) {
     const [selectedRows, setSelectedRows] = useState([]);
     const [error, seterror] = useState("");
     const dispatch = useDispatch();
@@ -29,6 +29,10 @@ function AddComponents() {
             });
     }
     const [componentsState, setComponentsState] = useState(initialComponents);
+
+    useEffect(() => {
+        setWarningFor(null);
+    }, []);
 
     const handleInputChange = (value, rowIndex, cellIndex) => {
         setComponentsState((prevState) => {

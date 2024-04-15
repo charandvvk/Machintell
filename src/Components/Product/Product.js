@@ -9,16 +9,26 @@ import { useDispatch, useSelector } from "react-redux";
 import { backendActions, productActions } from "../../store";
 import ProductDetails from "./newProduct/ProductDetails";
 import SubAssemblyDetails from "./subAssembly/subAssemblyDetails";
-import DialogBox from "./DialogBox";
+// import DialogBox from "./DialogBox";
 
 const Product = () => {
     const product = useSelector((state) => state.product);
-    const { name, currActive, subassemblies, currForm, mainFunction } = product;
+    const {
+        name,
+        currActive,
+        subassemblies,
+        currForm,
+        mainFunction,
+        components,
+    } = product;
     const subassembly = subassemblies[currActive];
     const { products } = useSelector((state) => state.backend);
     const dispatch = useDispatch();
     const [warningFor, setWarningFor] = useState(null);
     let itemNotSaved;
+    if (warningFor && warningFor !== "delete" && currForm !== "components") {
+        itemNotSaved = currActive.startsWith("p") ? name : subassembly.name;
+    }
 
     let isDisabled = true;
     if (currActive) {
@@ -30,6 +40,15 @@ const Product = () => {
         )
             isDisabled = false;
     }
+
+    const handleDelete = () => {
+        currActive.startsWith("s")
+            ? dispatch(productActions.deleteSubassembly(currActive))
+            : dispatch(productActions.deleteComponent(currActive));
+        setWarningFor(null);
+        dispatch(productActions.setCurrForm(null));
+        dispatch(productActions.setActive(""));
+    };
 
     const toggleFormDisplay = (formType) => {
         if (formType === "newProduct") {
@@ -62,7 +81,6 @@ const Product = () => {
                 (currActive.startsWith("s") && !subassembly.mainFunction))
         ) {
             setWarningFor(formType);
-            itemNotSaved = currActive.startsWith("p") ? name : subassembly.name;
         } else toggleFormDisplay(formType);
     }
 
@@ -72,17 +90,29 @@ const Product = () => {
     };
 
     function displayForm() {
-        if (currForm === "newProduct") return <AddNewProduct />;
-        else if (currForm === "manageProducts") return <ManageProducts />;
-        else if (currForm === "subAssembly") return <SubAssembly />;
+        if (currForm === "newProduct")
+            return <AddNewProduct setWarningFor={setWarningFor} />;
+        else if (currForm === "manageProducts")
+            return <ManageProducts setWarningFor={setWarningFor} />;
+        else if (currForm === "subAssembly")
+            return <SubAssembly setWarningFor={setWarningFor} />;
         else if (currForm === "components")
-            return <AddComponents key={currActive} />;
-        else if (currForm === "productDetails") return <ProductDetails />;
+            return (
+                <AddComponents key={currActive} setWarningFor={setWarningFor} />
+            );
+        else if (currForm === "productDetails")
+            return <ProductDetails setWarningFor={setWarningFor} />;
         else if (currForm === "subAssemblyDetails") {
-            return <SubAssemblyDetails key={currActive} />;
-        } else if (currForm === "DialogBox") {
-            return <DialogBox />;
+            return (
+                <SubAssemblyDetails
+                    key={currActive}
+                    setWarningFor={setWarningFor}
+                />
+            );
         }
+        // else if (currForm === "DialogBox") {
+        //     return <DialogBox />;
+        // }
     }
 
     return (
@@ -121,12 +151,17 @@ const Product = () => {
                         <button
                             type="button"
                             className={`${styles.btn} ${
-                                currForm === "subAssembly" && styles.active
+                                currForm === "subAssembly" &&
+                                !warningFor &&
+                                styles.active
                             }`}
                             onClick={() => {
                                 handleToggleFormType("subAssembly");
                             }}
-                            disabled={isDisabled}
+                            disabled={
+                                isDisabled ||
+                                (currForm === "subAssembly" && warningFor)
+                            }
                         >
                             Add sub-assembly
                         </button>
@@ -135,15 +170,32 @@ const Product = () => {
                             className={`${styles.btn} ${
                                 currForm === "components" &&
                                 !currActive.startsWith("c") &&
+                                !warningFor &&
                                 styles.active
                             }`}
                             onClick={() => {
                                 handleToggleFormType("components");
                             }}
-                            disabled={isDisabled}
+                            disabled={
+                                isDisabled ||
+                                (currForm === "components" && warningFor)
+                            }
                         >
                             Add component
                         </button>
+                        {((currActive.startsWith("s") &&
+                            subassemblies[currActive].mainFunction) ||
+                            currActive.startsWith("c")) && (
+                            <button
+                                type="button"
+                                className={`${styles.btn} ${
+                                    warningFor === "delete" && styles.active
+                                }`}
+                                onClick={() => setWarningFor("delete")}
+                            >
+                                Delete
+                            </button>
+                        )}
                     </div>
                     <div className={styles.columnTitle}>Main Assemblies</div>
                 </div>
@@ -160,7 +212,7 @@ const Product = () => {
                         </div>
                     </div>
                     <div className={styles.rightcol}>
-                        {warningFor && (
+                        {warningFor && warningFor !== "delete" && (
                             <div className={styles.modal}>
                                 <div>
                                     Do you want to{" "}
@@ -184,8 +236,28 @@ const Product = () => {
                                 </div>
                             </div>
                         )}
+                        {warningFor === "delete" && (
+                            <div className={styles.modal}>
+                                <div>
+                                    Do you want to delete{" "}
+                                    {currActive.startsWith("s") &&
+                                        `${subassemblies[currActive].name}, and nested subassemblies and components`}
+                                    {currActive.startsWith("c") &&
+                                        components[currActive].name}
+                                    ?
+                                </div>
+                                <div className={styles.actions}>
+                                    <button onClick={() => setWarningFor(null)}>
+                                        Cancel
+                                    </button>
+                                    <button onClick={handleDelete}>
+                                        Confirm
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                         <div className={warningFor ? styles.hidden : ""}>
-                            {displayForm()}
+                            <div>{displayForm()}</div>
                         </div>
                     </div>
                 </div>

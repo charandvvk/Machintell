@@ -15,11 +15,22 @@ const initialState = {
     },
     components: {},
     currActive: "",
-    currForm: "",
+    currForm: null,
 };
 
 const isParentOf = (items, currActive) =>
     Object.values(items).find((value) => value.parent === currActive);
+
+const deleteSubassemblyRecursive = (id, subassemblies, components) => {
+    for (const compId in components)
+        if (components[compId].parent === id) delete components[compId];
+    for (const subId in subassemblies) {
+        const subassembly = subassemblies[subId];
+        if (subassembly && subassembly.parent === id)
+            deleteSubassemblyRecursive(subId, subassemblies, components);
+    }
+    delete subassemblies[id];
+};
 
 const productSlice = createSlice({
     name: "product",
@@ -48,6 +59,9 @@ const productSlice = createSlice({
         },
         addSubassemblyPlaceholderParent(state) {
             state.subassemblies.untitled.parent = state.currActive;
+        },
+        removeSubassemblyPlaceholderParent(state) {
+            state.subassemblies.untitled.parent = "";
         },
         addSubassembly(state, { payload }) {
             const subassembly = {
@@ -99,6 +113,10 @@ const productSlice = createSlice({
                 (specification) => [...specification]
             );
         },
+        deleteSubassembly(state, { payload }) {
+            const { subassemblies, components } = state;
+            deleteSubassemblyRecursive(payload, subassemblies, components);
+        },
         addComponents(state, { payload }) {
             const { currActive, subassemblies } = state;
             if (
@@ -114,8 +132,11 @@ const productSlice = createSlice({
                     fileLocation: component[3],
                 };
             }
-            state.currForm = "";
+            state.currForm = null;
             state.currActive = "";
+        },
+        deleteComponent(state, { payload }) {
+            delete state.components[payload];
         },
         setActive(state, { payload }) {
             state.currActive = payload;

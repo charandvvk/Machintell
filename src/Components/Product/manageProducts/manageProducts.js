@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { backendActions, productActions } from "../../../store";
 import classes from "../product.module.css";
 import AddNewProduct from "../newProduct/AddNewProduct";
 
-const ManageProducts = () => {
+const ManageProducts = ({ setWarningFor }) => {
     const { products } = useSelector((state) => state.backend);
     const dispatch = useDispatch();
     const [selectedId, setSelectedId] = useState("");
@@ -12,6 +12,10 @@ const ManageProducts = () => {
     const selectedProduct = products.find(
         (product) => product.id === selectedId
     );
+
+    useEffect(() => {
+        setWarningFor(null);
+    }, []);
 
     const handleConfirm = () => {
         if (selectedAction === "edit")
