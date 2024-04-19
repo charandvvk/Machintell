@@ -42,6 +42,7 @@ const ManageProducts = ({ setWarningFor }) => {
                     <AddNewProduct
                         product={selectedProduct}
                         onSave={handleSave}
+                        setWarningFor={setWarningFor}
                     />
                 ) : (
                     <div className={classes.modal}>
