@@ -84,7 +84,7 @@ function SpecificationDetails({type}) {
     let errorMessage = "";
 
     if (specificationsState.some((row) => row.some((sp) => sp.trim() === ""))) {
-      errorMessage += "Please enter all details.\n";
+      errorMessage += "* Please enter all details.\n";
       isValid = false;
     }
 
