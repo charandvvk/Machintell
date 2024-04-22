@@ -56,13 +56,13 @@ function ProductDetails() {
 
     // Check if mainFunction is empty
     if (mainFunctionRef.current.value.trim() === "") {
-      errorMessage += "Please enter Main Function.\n";
+      errorMessage += "* Please enter Main Function.\n";
       isValid = false;
     }
 
     // Check if Secondary Function is empty
-    if (secondaryFunctionsState.some((sf) => sf.trim() === "")) {
-      errorMessage += "Please enter  all Secondary Functions.\n";
+    if (!secondaryFunctionsState.some((sf) => sf.trim() !== "")) {
+      errorMessage += "* Please enter  all Secondary Functions.\n";
       isValid = false;
     }
 
@@ -115,18 +115,21 @@ function ProductDetails() {
                   <td className={styles.td}>{fileLocation}</td>
                 </tr>
                 <tr>
-                  <th className={styles.th}>Main Functions</th>
+                  <th className={styles.th}>
+                    Main Functions { error && mainFunctionRef.current.value === "" && <span className={styles.requiredSymbol}>*</span> }
+                    </th>
                   <td className={styles.td}>
                     <textarea
                       className={styles.input}
                       defaultValue={mainFunction}
                       ref={mainFunctionRef}
+                      onChange={() => setError("")}
                     />
                   </td>
                 </tr>
                 <tr>
                   <th className={styles.th} colSpan="2">
-                    Add secondary function
+                    Add secondary function 
                   </th>
                 </tr>
               </>
@@ -144,7 +147,9 @@ function ProductDetails() {
                   }}
                   
                 >
-                  <th className={styles.th} onClick={() => toggleRowSelection(index)}>Secondary function {index + 1}</th>
+                  <th className={styles.th} onClick={() => toggleRowSelection(index)}>
+                    Secondary function {index + 1} {" "} { secondaryFunctionsState === "" && error && <span className={styles.requiredSymbol}>*</span> }
+                  </th>
                   <td className={styles.td}>
                     <input
                       type="text"

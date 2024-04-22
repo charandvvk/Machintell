@@ -135,8 +135,8 @@
 }
 
 .btn2 {
+    float: right;    
     padding: 2px;
-
 }
 
 .savebtn{
@@ -194,4 +194,10 @@
 .disabled {
     pointer-events: none;
     color: lightgray;
+}
+
+.error, .requiredSymbol{
+    color: red;
+    font-weight: 500;
+    font-style: italic;
 }
