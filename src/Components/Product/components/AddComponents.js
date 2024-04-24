@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import DynamicTable from "./DynamicTable";
 import styles from "../product.module.css";
-import generateId from "../../../util";
+import generateId from "../../../utils/generateId";
 import { useDispatch, useSelector } from "react-redux";
 import { productActions } from "../../../store";
 

@@ -3,29 +3,58 @@ import { useDispatch, useSelector } from "react-redux";
 import { backendActions, productActions } from "../../../store";
 import classes from "../product.module.css";
 import AddNewProduct from "../newProduct/AddNewProduct";
+import { deleteData, getData } from "../../../utils/http";
 
 const ManageProducts = ({ setWarningFor }) => {
-    const { products } = useSelector((state) => state.backend);
+    // const { products } = useSelector((state) => state.backend);
+    const [productsData, setProductsData] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
     const dispatch = useDispatch();
     const [selectedId, setSelectedId] = useState("");
     const [selectedAction, setSelectedAction] = useState(null);
-    const selectedProduct = products.find(
-        (product) => product.id === selectedId
+    const selectedProduct = productsData.find(
+        (product) => product.product_id === selectedId
     );
 
     useEffect(() => {
         setWarningFor(null);
-    }, []);
+        const getProducts = async () => {
+            setIsLoading(true);
+            try {
+                const data = await getData("/viewproducts");
+                setProductsData(data);
+            } catch (error) {
+                console.error("Error:", error.message);
+            }
+            setIsLoading(false);
+        };
+        getProducts();
+    }, [setWarningFor]);
 
-    const handleConfirm = () => {
+    const handleConfirm = async () => {
         if (selectedAction === "edit")
             dispatch(productActions.set(selectedProduct));
         else if (selectedAction === "duplicate") {
             setSelectedAction("confirmDuplicate");
         } else {
+            try {
+                const { message, data } = await deleteData(
+                    `/deleteproduct/${encodeURIComponent(selectedId)}`
+                );
+                setProductsData((prevState) =>
+                    prevState.filter(
+                        (product) => product.product_id !== selectedId
+                    )
+                );
+                dispatch(
+                    productActions.setHasProducts(productsData.length - 1)
+                );
+            } catch (error) {
+                console.error("Error:", error.message);
+            }
             dispatch(backendActions.deleteProduct(selectedId));
             setSelectedAction(null);
-            if (products.length === 1)
+            if (productsData.length === 1)
                 dispatch(productActions.setCurrForm(null));
         }
     };
@@ -48,7 +77,7 @@ const ManageProducts = ({ setWarningFor }) => {
                     <div className={classes.modal}>
                         <div>
                             Do you want to {selectedAction}{" "}
-                            {selectedProduct.name}?
+                            {selectedProduct.product_name}?
                         </div>
                         <div className={classes.actions}>
                             <button onClick={() => setSelectedAction(null)}>
@@ -62,19 +91,22 @@ const ManageProducts = ({ setWarningFor }) => {
                 <div className={classes.select}>
                     <div className={classes.title}>Select a product:</div>
                     <div className={classes.products}>
-                        {products.map((product) => (
+                        {isLoading && "Loading products..."}
+                        {productsData.map((product) => (
                             <div
-                                key={product.id}
-                                onClick={() => setSelectedId(product.id)}
+                                key={product.product_id}
+                                onClick={() =>
+                                    setSelectedId(product.product_id)
+                                }
                                 className={`${classes.product} ${
                                     classes.cursor
                                 } ${
-                                    selectedId === product.id
+                                    selectedId === product.product_id
                                         ? classes.active
                                         : classes.background
                                 }`}
                             >
-                                {product.name}
+                                {product.product_name}
                             </div>
                         ))}
                     </div>

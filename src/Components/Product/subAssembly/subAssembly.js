@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 import styles from "../product.module.css";
 import { useDispatch } from "react-redux";
 import { productActions } from "../../../store";
-import generateId from "../../../util";
+import generateId from "../../../utils/generateId";
 
 const SubAssembly = ({ setWarningFor }) => {
     const nameRef = useRef();

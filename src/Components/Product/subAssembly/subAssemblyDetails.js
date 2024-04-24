@@ -301,7 +301,7 @@ function SubAssemblyDetails({ setWarningFor }) {
             )}
             {isSpecsFormVisible ? (
                 <SpecificationDetails
-                    type={"subAssembly"}
+                    type="subAssembly"
                     setIsSpecsFormVisbile={setIsSpecsFormVisbile}
                 />
             ) : (

@@ -4,9 +4,6 @@ const initialState = {
     name: "",
     fileLocation: "",
     id: "",
-    mainFunction: "",
-    secondaryFunctions: [],
-    specifications: [],
     subassemblies: {
         untitled: {
             name: "Untitled",
@@ -16,6 +13,7 @@ const initialState = {
     components: {},
     currActive: "",
     currForm: null,
+    hasProducts: null,
 };
 
 const isParentOf = (items, currActive) =>
@@ -47,15 +45,8 @@ const productSlice = createSlice({
             state.currForm = "productDetails";
         },
         addProductDetails(state, { payload }) {
-            state.mainFunction = payload.mainFunction;
-            state.secondaryFunctions = [...payload.secondaryFunctions];
             state.name = payload.name;
-            state.fileLocation = payload.fileLocation;
-        },
-        addProductSpecifications(state, { payload }) {
-            state.specifications = payload.map((specification) => [
-                ...specification,
-            ]);
+            delete state.fileLocation;
         },
         addSubassemblyPlaceholderParent(state) {
             state.subassemblies.untitled.parent = state.currActive;
@@ -152,6 +143,9 @@ const productSlice = createSlice({
             product.currActive = "";
             product.currForm = "";
             Object.assign(state, product);
+        },
+        setHasProducts(state, { payload }) {
+            state.hasProducts = payload ? true : false;
         },
     },
 });

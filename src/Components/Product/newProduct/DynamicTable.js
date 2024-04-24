@@ -28,12 +28,17 @@ function DynamicTable({
         // return cell[headers[cellIndex]];
         // }
     };
+    const iterableData = data.map((spec) => [
+        spec.product_specifications,
+        spec.product_unit,
+        spec.product_value,
+    ]);
 
     return (
         <table className={styles.table}>
             <thead>
                 <tr>
-                    <th className={styles.th} colSpan={3}>
+                    <th className={styles.th} colSpan={4}>
                         Specifications of {id}
                     </th>
                     <td>
@@ -59,7 +64,7 @@ function DynamicTable({
             </thead>
             {!saveBtnClick && (
                 <tbody>
-                    {data.map((row, rowIndex) => (
+                    {iterableData.map((row, rowIndex) => (
                         <tr
                             key={rowIndex}
                             style={{
@@ -67,8 +72,13 @@ function DynamicTable({
                                     ? "lightgray"
                                     : "white",
                             }}
-                            onClick={() => toggleRowSelection(rowIndex)}
                         >
+                            <th
+                                className={styles.th}
+                                onClick={() => toggleRowSelection(rowIndex)}
+                            >
+                                Specification {rowIndex + 1}
+                            </th>
                             {row.map((cell, cellIndex) => (
                                 <td className={styles.td} key={cellIndex}>
                                     {renderCell(cell, rowIndex, cellIndex)}

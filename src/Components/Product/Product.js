@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styles from "./product.module.css";
 import AddNewProduct from "./newProduct/AddNewProduct";
 import SubAssembly from "./subAssembly/subAssembly";
@@ -9,31 +9,47 @@ import { useDispatch, useSelector } from "react-redux";
 import { backendActions, productActions } from "../../store";
 import ProductDetails from "./newProduct/ProductDetails";
 import SubAssemblyDetails from "./subAssembly/subAssemblyDetails";
+import { getData } from "../../utils/http";
 // import DialogBox from "./DialogBox";
 
 const Product = () => {
     const product = useSelector((state) => state.product);
     const {
         name,
+        fileLocation,
         currActive,
         subassemblies,
         currForm,
-        mainFunction,
         components,
+        hasProducts,
     } = product;
     const subassembly = subassemblies[currActive];
-    const { products } = useSelector((state) => state.backend);
     const dispatch = useDispatch();
     const [warningFor, setWarningFor] = useState(null);
     let itemNotSaved;
     if (warningFor && warningFor !== "delete" && currForm !== "components") {
         itemNotSaved = currActive.startsWith("p") ? name : subassembly.name;
     }
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        const getProducts = async () => {
+            setIsLoading(true);
+            try {
+                const data = await getData("/viewproducts");
+                dispatch(productActions.setHasProducts(data.length));
+            } catch (error) {
+                console.error("Error:", error.message);
+            }
+            setIsLoading(false);
+        };
+        getProducts();
+    }, []);
 
     let isDisabled = true;
     if (currActive) {
         if (
-            (currActive.startsWith("p") && mainFunction) ||
+            (currActive.startsWith("p") && !fileLocation) ||
             (currActive.startsWith("s") &&
                 subassembly.isChildrenNeeded !== "No" &&
                 subassembly.mainFunction)
@@ -58,7 +74,7 @@ const Product = () => {
                 delete productCopy.subassemblies[currActive];
                 dispatch(backendActions.addProduct(productCopy));
                 dispatch(productActions.reset());
-            } else if (mainFunction) {
+            } else if (!fileLocation) {
                 dispatch(backendActions.addProduct(product));
                 dispatch(productActions.reset());
             }
@@ -67,7 +83,7 @@ const Product = () => {
                 const productCopy = JSON.parse(JSON.stringify(product));
                 delete productCopy.subassemblies[currActive];
                 dispatch(backendActions.addProduct(productCopy));
-            } else if (mainFunction)
+            } else if (!fileLocation)
                 dispatch(backendActions.addProduct(product));
             dispatch(productActions.reset());
         }
@@ -77,7 +93,7 @@ const Product = () => {
     function handleToggleFormType(formType) {
         if (
             (formType === "newProduct" || formType === "manageProducts") &&
-            ((currActive.startsWith("p") && !mainFunction) ||
+            ((currActive.startsWith("p") && fileLocation) ||
                 (currActive.startsWith("s") && !subassembly.mainFunction))
         ) {
             setWarningFor(formType);
@@ -139,9 +155,9 @@ const Product = () => {
                             onClick={() => {
                                 handleToggleFormType("manageProducts");
                             }}
-                            disabled={!products.length && !mainFunction}
+                            disabled={!hasProducts}
                         >
-                            Manage products
+                            {isLoading ? "Loading status" : "Manage products"}
                         </button>
                     </div>
                     <div className={styles.columnTitle}>Product Details</div>

@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import styles from "../product.module.css";
 import { useDispatch } from "react-redux";
 import { backendActions, productActions } from "../../../store";
-import generateId from "../../../util";
+import generateId from "../../../utils/generateId";
 
 function AddNewProduct({ product, onSave, setWarningFor }) {
     const nameRef = useRef();
@@ -56,7 +56,7 @@ function AddNewProduct({ product, onSave, setWarningFor }) {
     };
 
     const handleSave = () => {
-        console.log("Saving data...");
+        // console.log("Saving data...");
 
         // Perform validation
 

@@ -3,31 +3,44 @@ import DynamicTable from "./DynamicTable";
 import styles from "../product.module.css";
 import { useDispatch, useSelector } from "react-redux";
 import { productActions } from "../../../store";
+import { deleteData, getData, sendData } from "../../../utils/http";
 
-function SpecificationDetails({ type, setIsSpecsFormVisbile }) {
-    const [selectedRows, setSelectedRows] = useState([]);
+const emptySpec = {
+    product_specifications: "",
+    product_unit: "",
+    product_value: "",
+};
+
+function SpecificationDetails({ type, setSpecifications, specifications }) {
+    const [selectedRowsState, setSelectedRowsState] = useState([]); // State to store selected row indices
     const [error, seterror] = useState("");
     const dispatch = useDispatch();
     const product = useSelector((state) => state.product);
     const { subassemblies, currActive } = product;
-    const specifications =
-        type === "product"
-            ? product.specifications.length
-                ? product.specifications
-                : [["", "", ""]]
-            : subassemblies[currActive].specifications.length
+    const initialSpecifications =
+        type === "subAssembly" &&
+        subassemblies[currActive].specifications.length
             ? subassemblies[currActive].specifications
             : [["", "", ""]];
-    const [specificationsState, setSpecificationsState] =
-        useState(specifications);
-    const [saveBtnClick, setSavebtnClick] = useState(false); // State to track save button click
+    const [specificationsState, setSpecificationsState] = useState(
+        type === "subAssembly" ? initialSpecifications : specifications
+    );
+    const [saveBtnClick, setSavebtnClick] = useState(
+        specifications.length === 1 && !specifications[0].product_unit
+            ? false
+            : true
+    ); // State to track save button click
+    const [toDeleteSpecs, setToDeleteSpecs] = useState([]);
 
     const handleInputChange = (value, rowIndex, cellIndex) => {
         setSpecificationsState((prevState) => {
             const updatedSpecificationsState = prevState.map(
-                (specification) => [...specification]
+                (specification) => ({ ...specification })
             );
-            updatedSpecificationsState[rowIndex][cellIndex] = value;
+            let key = "product_specifications";
+            if (cellIndex === 1) key = "product_unit";
+            else if (cellIndex === 2) key = "product_value";
+            updatedSpecificationsState[rowIndex][key] = value;
             return updatedSpecificationsState;
         });
     };
@@ -35,41 +48,89 @@ function SpecificationDetails({ type, setIsSpecsFormVisbile }) {
     const handleAddRow = () => {
         setSpecificationsState((prevState) => {
             const updatedSpecificationsState = prevState.map(
-                (specification) => [...specification]
+                (specification) => ({ ...specification })
             );
-            updatedSpecificationsState.push(["", "", ""]);
+            updatedSpecificationsState.push({ ...emptySpec });
             return updatedSpecificationsState;
         });
     };
 
     const handleDeleteRow = () => {
-        setSpecificationsState((prevState) => {
-            return selectedRows.length
-                ? prevState.filter((_, index) => !selectedRows.includes(index))
-                : prevState.slice(0, -1);
-        });
-        setSelectedRows([]);
+        const selectedRows = selectedRowsState.length
+            ? selectedRowsState
+            : [specificationsState.length - 1];
+        setSpecificationsState((prevState) =>
+            prevState.filter((_, index) => {
+                const selected = selectedRows.includes(index);
+                if (selected) {
+                    const id = specificationsState[index].product_specs_id;
+                    id && setToDeleteSpecs((prevState) => [...prevState, id]);
+                }
+                return !selected;
+            })
+        );
+        setSelectedRowsState([]);
     };
 
     const toggleRowSelection = (selectedIndex) => {
-        setSelectedRows((prevState) => {
+        setSelectedRowsState((prevState) => {
             return prevState.includes(selectedIndex)
                 ? prevState.filter((index) => index !== selectedIndex)
                 : [...prevState, selectedIndex];
         });
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (validation()) {
             console.log("saved");
             if (type === "product") {
-                dispatch(
-                    productActions.addProductSpecifications(
-                        specificationsState.map((specification) => [
-                            ...specification,
-                        ])
-                    )
-                );
+                for (let spec of specificationsState) {
+                    const updateReqProdSpecData = {
+                        product_specs: spec.product_specifications,
+                        product_unit: spec.product_unit,
+                        product_value: spec.product_value,
+                    };
+                    const addRequestProductSpecData = {
+                        ...updateReqProdSpecData,
+                        product_id: product.id,
+                    };
+                    try {
+                        if (spec.product_specs_id) {
+                            const { message, data } = await sendData(
+                                `/updateproductspecs/${encodeURIComponent(
+                                    spec.product_specs_id
+                                )}`,
+                                "PUT",
+                                updateReqProdSpecData
+                            );
+                        } else {
+                            const { message, data } = await sendData(
+                                "/addproductspecs",
+                                "POST",
+                                addRequestProductSpecData
+                            );
+                        }
+                    } catch (error) {
+                        console.error("Error:", error.message);
+                    }
+                }
+                for (let id of toDeleteSpecs) {
+                    try {
+                        const { message, data } = await deleteData(
+                            `/deleteproductspecs/${encodeURIComponent(id)}`
+                        );
+                    } catch (error) {
+                        console.error("Error:", error.message);
+                    }
+                }
+                try {
+                    const data = await getData(
+                        `/viewproductspecs/${encodeURIComponent(product.id)}`
+                    );
+                    setSpecifications(data);
+                } catch (error) {
+                    console.error("Error:", error.message);
+                }
             } else {
                 dispatch(
                     productActions.addSubAssemblySpecifications(
@@ -81,7 +142,6 @@ function SpecificationDetails({ type, setIsSpecsFormVisbile }) {
             }
             // dispatch(productActions.setCurrForm("DialogBox"));
             setSavebtnClick(true);
-            if (!specificationsState.length) setIsSpecsFormVisbile(false);
         } else {
             console.log("Validation Failed");
         }
@@ -90,11 +150,13 @@ function SpecificationDetails({ type, setIsSpecsFormVisbile }) {
         let isValid = true;
         let errorMessage = "";
 
-        if (
-            specificationsState.some((row) =>
-                row.some((sp) => sp.trim() === "")
-            )
-        ) {
+        const iterableData = specificationsState.map((spec) => [
+            spec.product_specifications,
+            spec.product_unit,
+            spec.product_value,
+        ]);
+
+        if (iterableData.some((row) => row.some((sp) => sp.trim() === ""))) {
             errorMessage += "Please enter all details.\n";
             isValid = false;
         }
@@ -108,10 +170,9 @@ function SpecificationDetails({ type, setIsSpecsFormVisbile }) {
         <div>
             <DynamicTable
                 className="dynamic-table"
-                headers={["Name", "Units", "Value"]}
+                headers={["S. No.", "Name", "Units", "Value"]}
                 data={specificationsState}
-                selectedRows={selectedRows}
-                onRowSelection={(index) => setSelectedRows([index])}
+                selectedRows={selectedRowsState}
                 onDeleteRow={handleDeleteRow}
                 onInputChange={handleInputChange}
                 toggleRowSelection={toggleRowSelection}
@@ -138,7 +199,10 @@ function SpecificationDetails({ type, setIsSpecsFormVisbile }) {
                             className={`${styles.savebtn} ${styles.btn}`}
                             onClick={handleSave}
                         >
-                            Save
+                            {specifications.length === 1 &&
+                            !specifications[0].product_unit
+                                ? "Save"
+                                : "Update"}
                         </button>
                     </div>
                     {error && (
