@@ -3,32 +3,34 @@ import { useDispatch, useSelector } from "react-redux";
 import { backendActions, productActions } from "../../../store";
 import classes from "../product.module.css";
 import AddNewProduct from "../newProduct/AddNewProduct";
-import { deleteData, getData } from "../../../utils/http";
+import { deleteData, queryClient } from "../../../utils/http";
+import { useMutation } from "@tanstack/react-query";
 
-const ManageProducts = ({ setWarningFor }) => {
+const ManageProducts = ({ setWarningFor, productsFetched }) => {
     // const { products } = useSelector((state) => state.backend);
-    const [productsData, setProductsData] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
     const dispatch = useDispatch();
     const [selectedId, setSelectedId] = useState("");
     const [selectedAction, setSelectedAction] = useState(null);
-    const selectedProduct = productsData.find(
+    const selectedProduct = productsFetched.find(
         (product) => product.product_id === selectedId
+    );
+
+    const { mutate: deleteProduct, isPending: isDeletingProduct } = useMutation(
+        {
+            mutationFn: () =>
+                deleteData(`/deleteproduct/${encodeURIComponent(selectedId)}`),
+            onSuccess: () => {
+                queryClient.invalidateQueries({
+                    queryKey: ["products"],
+                });
+                if (productsFetched.length === 1)
+                    dispatch(productActions.setCurrForm(null));
+            },
+        }
     );
 
     useEffect(() => {
         setWarningFor(null);
-        const getProducts = async () => {
-            setIsLoading(true);
-            try {
-                const data = await getData("/viewproducts");
-                setProductsData(data);
-            } catch (error) {
-                console.error("Error:", error.message);
-            }
-            setIsLoading(false);
-        };
-        getProducts();
     }, [setWarningFor]);
 
     const handleConfirm = async () => {
@@ -37,25 +39,9 @@ const ManageProducts = ({ setWarningFor }) => {
         else if (selectedAction === "duplicate") {
             setSelectedAction("confirmDuplicate");
         } else {
-            try {
-                const { message, data } = await deleteData(
-                    `/deleteproduct/${encodeURIComponent(selectedId)}`
-                );
-                setProductsData((prevState) =>
-                    prevState.filter(
-                        (product) => product.product_id !== selectedId
-                    )
-                );
-                dispatch(
-                    productActions.setHasProducts(productsData.length - 1)
-                );
-            } catch (error) {
-                console.error("Error:", error.message);
-            }
-            dispatch(backendActions.deleteProduct(selectedId));
+            deleteProduct();
             setSelectedAction(null);
-            if (productsData.length === 1)
-                dispatch(productActions.setCurrForm(null));
+            dispatch(backendActions.deleteProduct(selectedId));
         }
     };
 
@@ -90,9 +76,10 @@ const ManageProducts = ({ setWarningFor }) => {
             ) : (
                 <div className={classes.select}>
                     <div className={classes.title}>Select a product:</div>
+                    {isDeletingProduct &&
+                        `Deleting ${selectedProduct.product_name}...`}
                     <div className={classes.products}>
-                        {isLoading && "Loading products..."}
-                        {productsData.map((product) => (
+                        {productsFetched.map((product) => (
                             <div
                                 key={product.product_id}
                                 onClick={() =>

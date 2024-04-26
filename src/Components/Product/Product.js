@@ -10,6 +10,7 @@ import { backendActions, productActions } from "../../store";
 import ProductDetails from "./newProduct/ProductDetails";
 import SubAssemblyDetails from "./subAssembly/subAssemblyDetails";
 import { getData } from "../../utils/http";
+import { useQuery } from "@tanstack/react-query";
 // import DialogBox from "./DialogBox";
 
 const Product = () => {
@@ -21,7 +22,6 @@ const Product = () => {
         subassemblies,
         currForm,
         components,
-        hasProducts,
     } = product;
     const subassembly = subassemblies[currActive];
     const dispatch = useDispatch();
@@ -30,21 +30,12 @@ const Product = () => {
     if (warningFor && warningFor !== "delete" && currForm !== "components") {
         itemNotSaved = currActive.startsWith("p") ? name : subassembly.name;
     }
-    const [isLoading, setIsLoading] = useState(false);
 
-    useEffect(() => {
-        const getProducts = async () => {
-            setIsLoading(true);
-            try {
-                const data = await getData("/viewproducts");
-                dispatch(productActions.setHasProducts(data.length));
-            } catch (error) {
-                console.error("Error:", error.message);
-            }
-            setIsLoading(false);
-        };
-        getProducts();
-    }, []);
+    const { data: productsFetched, isPending: isFetchingProducts } = useQuery({
+        queryKey: ["products"],
+        queryFn: () => getData("/viewproducts"),
+        initialData: [],
+    });
 
     let isDisabled = true;
     if (currActive) {
@@ -109,7 +100,12 @@ const Product = () => {
         if (currForm === "newProduct")
             return <AddNewProduct setWarningFor={setWarningFor} />;
         else if (currForm === "manageProducts")
-            return <ManageProducts setWarningFor={setWarningFor} />;
+            return (
+                <ManageProducts
+                    setWarningFor={setWarningFor}
+                    productsFetched={productsFetched}
+                />
+            );
         else if (currForm === "subAssembly")
             return <SubAssembly setWarningFor={setWarningFor} />;
         else if (currForm === "components")
@@ -155,9 +151,11 @@ const Product = () => {
                             onClick={() => {
                                 handleToggleFormType("manageProducts");
                             }}
-                            disabled={!hasProducts}
+                            disabled={!productsFetched.length}
                         >
-                            {isLoading ? "Loading status" : "Manage products"}
+                            {isFetchingProducts
+                                ? "Loading status"
+                                : "Manage products"}
                         </button>
                     </div>
                     <div className={styles.columnTitle}>Product Details</div>

@@ -3,7 +3,13 @@ import DynamicTable from "./DynamicTable";
 import styles from "../product.module.css";
 import { useDispatch, useSelector } from "react-redux";
 import { productActions } from "../../../store";
-import { deleteData, getData, sendData } from "../../../utils/http";
+import {
+    deleteData,
+    getData,
+    queryClient,
+    sendData,
+} from "../../../utils/http";
+import { useMutation } from "@tanstack/react-query";
 
 const emptySpec = {
     product_specifications: "",
@@ -11,12 +17,12 @@ const emptySpec = {
     product_value: "",
 };
 
-function SpecificationDetails({ type, setSpecifications, specifications }) {
+function SpecificationDetails({ type, specifications }) {
     const [selectedRowsState, setSelectedRowsState] = useState([]); // State to store selected row indices
     const [error, seterror] = useState("");
     const dispatch = useDispatch();
     const product = useSelector((state) => state.product);
-    const { subassemblies, currActive } = product;
+    const { subassemblies, currActive, id } = product;
     const initialSpecifications =
         type === "subAssembly" &&
         subassemblies[currActive].specifications.length
@@ -31,6 +37,36 @@ function SpecificationDetails({ type, setSpecifications, specifications }) {
             : true
     ); // State to track save button click
     const [toDeleteSpecs, setToDeleteSpecs] = useState([]);
+
+    const { mutate: addSpec, isPending: isAddingSpec } = useMutation({
+        mutationFn: (addReqSpecData) =>
+            sendData("/addproductspecs", "POST", addReqSpecData),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: ["productSpecs", id],
+            });
+        },
+    });
+
+    const { mutate: updateSpec, isPending: isUpdatingSpec } = useMutation({
+        mutationFn: ({ updateReqSpecData, specId }) => {
+            return sendData(
+                `/updateproductspecs/${encodeURIComponent(specId)}`,
+                "PUT",
+                updateReqSpecData
+            );
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: ["productSpecs", id],
+            });
+        },
+    });
+
+    const { mutate: deleteSpec, isPending: isDeletingSpec } = useMutation({
+        mutationFn: (specId) =>
+            deleteData(`/deleteproductspecs/${encodeURIComponent(specId)}`),
+    });
 
     const handleInputChange = (value, rowIndex, cellIndex) => {
         setSpecificationsState((prevState) => {
@@ -82,56 +118,26 @@ function SpecificationDetails({ type, setSpecifications, specifications }) {
 
     const handleSave = async () => {
         if (validation()) {
-            console.log("saved");
             if (type === "product") {
                 for (let spec of specificationsState) {
-                    const updateReqProdSpecData = {
+                    const updateReqSpecData = {
                         product_specs: spec.product_specifications,
                         product_unit: spec.product_unit,
                         product_value: spec.product_value,
                     };
-                    const addRequestProductSpecData = {
-                        ...updateReqProdSpecData,
-                        product_id: product.id,
+                    const addReqSpecData = {
+                        ...updateReqSpecData,
+                        product_id: id,
                     };
-                    try {
-                        if (spec.product_specs_id) {
-                            const { message, data } = await sendData(
-                                `/updateproductspecs/${encodeURIComponent(
-                                    spec.product_specs_id
-                                )}`,
-                                "PUT",
-                                updateReqProdSpecData
-                            );
-                        } else {
-                            const { message, data } = await sendData(
-                                "/addproductspecs",
-                                "POST",
-                                addRequestProductSpecData
-                            );
-                        }
-                    } catch (error) {
-                        console.error("Error:", error.message);
-                    }
+                    spec.product_specs_id
+                        ? updateSpec({
+                              updateReqSpecData,
+                              specId: spec.product_specs_id,
+                          })
+                        : addSpec(addReqSpecData);
                 }
-                for (let id of toDeleteSpecs) {
-                    try {
-                        const { message, data } = await deleteData(
-                            `/deleteproductspecs/${encodeURIComponent(id)}`
-                        );
-                    } catch (error) {
-                        console.error("Error:", error.message);
-                    }
-                }
-                try {
-                    const data = await getData(
-                        `/viewproductspecs/${encodeURIComponent(product.id)}`
-                    );
-                    setSpecifications(data);
-                } catch (error) {
-                    console.error("Error:", error.message);
-                }
-            } else {
+                for (let id of toDeleteSpecs) deleteSpec(id);
+            } else
                 dispatch(
                     productActions.addSubAssemblySpecifications(
                         specificationsState.map((specification) => [
@@ -139,7 +145,6 @@ function SpecificationDetails({ type, setSpecifications, specifications }) {
                         ])
                     )
                 );
-            }
             // dispatch(productActions.setCurrForm("DialogBox"));
             setSavebtnClick(true);
         } else {
@@ -168,6 +173,9 @@ function SpecificationDetails({ type, setSpecifications, specifications }) {
 
     return (
         <div>
+            {isAddingSpec && <div>Adding specification...</div>}
+            {isUpdatingSpec && <div>Updating specification...</div>}
+            {isDeletingSpec && <div>Deleting specification...</div>}
             <DynamicTable
                 className="dynamic-table"
                 headers={["S. No.", "Name", "Units", "Value"]}

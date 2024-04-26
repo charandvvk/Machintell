@@ -1,4 +1,8 @@
+import { QueryClient } from "@tanstack/react-query";
+
 const hostName = "http://localhost:4000/api/v1";
+
+export const queryClient = new QueryClient();
 
 export const sendData = async (route, method, requestData) => {
     const response = await fetch(hostName + route, {
