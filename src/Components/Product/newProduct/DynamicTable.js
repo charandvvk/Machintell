@@ -3,13 +3,15 @@ import styles from "../product.module.css";
 
 function DynamicTable({
     headers,
-    data,
+    specifications,
     onInputChange,
     selectedRows,
     toggleRowSelection,
     id,
     saveBtnClick,
     setSavebtnClick,
+    makeDataIterable,
+    typeProduct,
 }) {
     const renderCell = (cell, rowIndex, cellIndex) => {
         // console.log(cell);
@@ -28,11 +30,6 @@ function DynamicTable({
         // return cell[headers[cellIndex]];
         // }
     };
-    const iterableData = data.map((spec) => [
-        spec.product_specifications,
-        spec.product_unit,
-        spec.product_value,
-    ]);
 
     return (
         <table className={styles.table}>
@@ -64,28 +61,32 @@ function DynamicTable({
             </thead>
             {!saveBtnClick && (
                 <tbody>
-                    {iterableData.map((row, rowIndex) => (
-                        <tr
-                            key={rowIndex}
-                            style={{
-                                backgroundColor: selectedRows.includes(rowIndex)
-                                    ? "lightgray"
-                                    : "white",
-                            }}
-                        >
-                            <th
-                                className={styles.th}
-                                onClick={() => toggleRowSelection(rowIndex)}
+                    {makeDataIterable(specifications, typeProduct).map(
+                        (row, rowIndex) => (
+                            <tr
+                                key={rowIndex}
+                                style={{
+                                    backgroundColor: selectedRows.includes(
+                                        rowIndex
+                                    )
+                                        ? "lightgray"
+                                        : "white",
+                                }}
                             >
-                                Specification {rowIndex + 1}
-                            </th>
-                            {row.map((cell, cellIndex) => (
-                                <td className={styles.td} key={cellIndex}>
-                                    {renderCell(cell, rowIndex, cellIndex)}
-                                </td>
-                            ))}
-                        </tr>
-                    ))}
+                                <th
+                                    className={styles.th}
+                                    onClick={() => toggleRowSelection(rowIndex)}
+                                >
+                                    Specification {rowIndex + 1}
+                                </th>
+                                {row.map((cell, cellIndex) => (
+                                    <td className={styles.td} key={cellIndex}>
+                                        {renderCell(cell, rowIndex, cellIndex)}
+                                    </td>
+                                ))}
+                            </tr>
+                        )
+                    )}
                 </tbody>
             )}
         </table>

@@ -16,9 +16,6 @@ const initialState = {
     hasProducts: null,
 };
 
-const isParentOf = (items, currActive) =>
-    Object.values(items).find((value) => value.parent === currActive);
-
 const deleteSubassemblyRecursive = (id, subassemblies, components) => {
     for (const compId in components)
         if (components[compId].parent === id) delete components[compId];
@@ -61,48 +58,23 @@ const productSlice = createSlice({
                 isChildrenNeeded: payload.isChildrenNeeded,
                 fileLocation: payload.fileLocation,
                 isBoughtUp: payload.isBoughtUp,
-                mainFunction: "",
-                secondaryFunctions: [],
-                specifications: [],
             };
             state.subassemblies[payload.id] = subassembly;
             state.currActive = payload.id;
             state.currForm = "subAssemblyDetails";
         },
         addSubassemblyDetails(state, { payload }) {
-            const { subassemblies, currActive, components } = state;
+            const { subassemblies, currActive } = state;
             const subassembly = subassemblies[currActive];
-            const parentId = subassembly.parent;
-            if (
-                parentId.startsWith("s") &&
-                subassemblies[parentId].isChildrenNeeded === "Yes"
-            )
+            if (payload.target) {
+                const parentId = subassembly.parent;
                 subassemblies[parentId].isChildrenNeeded = "added";
-            subassembly.name = payload.name;
-            subassembly.fileLocation = payload.fileLocation;
-            subassembly.mainFunction = payload.mainFunction;
-            subassembly.secondaryFunctions = [...payload.secondaryFunctions];
-            subassembly.isBoughtUp = payload.isBoughtUp;
-            if (
-                subassembly.isChildrenNeeded !== "No" &&
-                payload.isChildrenNeeded === "No"
-            )
-                subassembly.isChildrenNeeded = "No";
-            else if (
-                subassembly.isChildrenNeeded === "No" &&
-                payload.isChildrenNeeded === "Yes"
-            ) {
-                subassembly.isChildrenNeeded =
-                    isParentOf(subassemblies, currActive) ||
-                    isParentOf(components, currActive)
-                        ? "added"
-                        : "Yes";
+            } else {
+                subassembly.name = payload.name;
+                subassembly.isChildrenNeeded = payload.isChildrenNeeded;
+                delete subassembly.fileLocation;
+                delete subassembly.isBoughtUp;
             }
-        },
-        addSubAssemblySpecifications(state, { payload }) {
-            state.subassemblies[state.currActive].specifications = payload.map(
-                (specification) => [...specification]
-            );
         },
         deleteSubassembly(state, { payload }) {
             const { subassemblies, components } = state;
@@ -144,9 +116,6 @@ const productSlice = createSlice({
             product.currForm = "";
             Object.assign(state, product);
         },
-        setHasProducts(state, { payload }) {
-            state.hasProducts = payload ? true : false;
-        },
     },
 });
 
@@ -154,25 +123,12 @@ const backendSlice = createSlice({
     name: "backend",
     initialState: { products: [] },
     reducers: {
-        addProduct(state, { payload }) {
-            const product = JSON.parse(JSON.stringify(payload));
-            const index = state.products.findIndex(
-                (prod) => prod.id === product.id
-            );
-            if (index === -1) state.products.push(product);
-            else state.products[index] = product;
-        },
         duplicateProduct(state, { payload }) {
             const product = JSON.parse(JSON.stringify(payload.product));
             product.name = payload.name;
             product.fileLocation = payload.fileLocation;
             product.id = payload.id;
             state.products.push(product);
-        },
-        deleteProduct(state, { payload }) {
-            state.products = state.products.filter(
-                (product) => product.id !== payload
-            );
         },
     },
 });

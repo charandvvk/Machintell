@@ -1,6 +1,6 @@
 import { QueryClient } from "@tanstack/react-query";
 
-const hostName = "http://localhost:4000/api/v1";
+const hostName = "http://localhost:4004/api/v1";
 
 export const queryClient = new QueryClient();
 

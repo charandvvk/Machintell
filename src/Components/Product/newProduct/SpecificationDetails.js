@@ -1,38 +1,37 @@
 import React, { useState } from "react";
 import DynamicTable from "./DynamicTable";
 import styles from "../product.module.css";
-import { useDispatch, useSelector } from "react-redux";
-import { productActions } from "../../../store";
-import {
-    deleteData,
-    getData,
-    queryClient,
-    sendData,
-} from "../../../utils/http";
+import { useSelector } from "react-redux";
+import { deleteData, queryClient, sendData } from "../../../utils/http";
 import { useMutation } from "@tanstack/react-query";
 
-const emptySpec = {
-    product_specifications: "",
-    product_unit: "",
-    product_value: "",
+const makeDataIterable = (specifications, typeProduct) => {
+    return specifications.map((spec) =>
+        typeProduct
+            ? [
+                  spec.product_specifications,
+                  spec.product_unit,
+                  spec.product_value,
+              ]
+            : [
+                  spec.sub_assembly_specifications,
+                  spec.sub_assembly_unit,
+                  spec.sub_assembly_value,
+              ]
+    );
 };
 
-function SpecificationDetails({ type, specifications }) {
+function SpecificationDetails({ specifications, emptySpec }) {
     const [selectedRowsState, setSelectedRowsState] = useState([]); // State to store selected row indices
     const [error, seterror] = useState("");
-    const dispatch = useDispatch();
-    const product = useSelector((state) => state.product);
-    const { subassemblies, currActive, id } = product;
-    const initialSpecifications =
-        type === "subAssembly" &&
-        subassemblies[currActive].specifications.length
-            ? subassemblies[currActive].specifications
-            : [["", "", ""]];
-    const [specificationsState, setSpecificationsState] = useState(
-        type === "subAssembly" ? initialSpecifications : specifications
-    );
+    const { currActive } = useSelector((state) => state.product);
+    const typeProduct = currActive.startsWith("p");
+    const [specificationsState, setSpecificationsState] =
+        useState(specifications);
     const [saveBtnClick, setSavebtnClick] = useState(
-        specifications.length === 1 && !specifications[0].product_unit
+        specifications.length === 1 &&
+            (!specifications[0].product_unit ||
+                !specifications[0].sub_assembly_unit)
             ? false
             : true
     ); // State to track save button click
@@ -40,32 +39,47 @@ function SpecificationDetails({ type, specifications }) {
 
     const { mutate: addSpec, isPending: isAddingSpec } = useMutation({
         mutationFn: (addReqSpecData) =>
-            sendData("/addproductspecs", "POST", addReqSpecData),
+            sendData(
+                `/${
+                    typeProduct
+                        ? "addproductspecs"
+                        : "addsubassemblyspecifications"
+                }`,
+                "POST",
+                addReqSpecData
+            ),
         onSuccess: () => {
             queryClient.invalidateQueries({
-                queryKey: ["productSpecs", id],
+                queryKey: [
+                    typeProduct ? "productSpecs" : "subassemblySpecs",
+                    currActive,
+                ],
             });
         },
     });
 
     const { mutate: updateSpec, isPending: isUpdatingSpec } = useMutation({
-        mutationFn: ({ updateReqSpecData, specId }) => {
-            return sendData(
-                `/updateproductspecs/${encodeURIComponent(specId)}`,
+        mutationFn: ({ updateReqSpecData, specId }) =>
+            sendData(
+                `/${
+                    typeProduct
+                        ? "updateproductspecs"
+                        : "updatesubassemblyspecifications"
+                }/${encodeURIComponent(specId)}`,
                 "PUT",
                 updateReqSpecData
-            );
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: ["productSpecs", id],
-            });
-        },
+            ),
     });
 
     const { mutate: deleteSpec, isPending: isDeletingSpec } = useMutation({
         mutationFn: (specId) =>
-            deleteData(`/deleteproductspecs/${encodeURIComponent(specId)}`),
+            deleteData(
+                `/${
+                    typeProduct
+                        ? "deleteproductspecs"
+                        : "deletesubassemblyspecifications"
+                }/${encodeURIComponent(specId)}`
+            ),
     });
 
     const handleInputChange = (value, rowIndex, cellIndex) => {
@@ -73,9 +87,10 @@ function SpecificationDetails({ type, specifications }) {
             const updatedSpecificationsState = prevState.map(
                 (specification) => ({ ...specification })
             );
-            let key = "product_specifications";
-            if (cellIndex === 1) key = "product_unit";
-            else if (cellIndex === 2) key = "product_value";
+            let key = typeProduct ? "product" : "sub_assembly";
+            if (!cellIndex) key += "_specifications";
+            else if (cellIndex === 1) key += "_unit";
+            else key += "_value";
             updatedSpecificationsState[rowIndex][key] = value;
             return updatedSpecificationsState;
         });
@@ -99,7 +114,12 @@ function SpecificationDetails({ type, specifications }) {
             prevState.filter((_, index) => {
                 const selected = selectedRows.includes(index);
                 if (selected) {
-                    const id = specificationsState[index].product_specs_id;
+                    const id =
+                        specificationsState[index][
+                            typeProduct
+                                ? "product_specs_id"
+                                : "sub_assembly_specs_id"
+                        ];
                     id && setToDeleteSpecs((prevState) => [...prevState, id]);
                 }
                 return !selected;
@@ -116,59 +136,47 @@ function SpecificationDetails({ type, specifications }) {
         });
     };
 
+    const validation = () => {
+        let isValid = true;
+        let errorMessage = "";
+        if (
+            makeDataIterable(specificationsState, typeProduct).some((row) =>
+                row.some((sp) => sp.trim() === "")
+            )
+        ) {
+            errorMessage += "Please enter all details.\n";
+            isValid = false;
+        }
+        seterror(errorMessage);
+        return isValid;
+    };
+
     const handleSave = async () => {
         if (validation()) {
-            if (type === "product") {
-                for (let spec of specificationsState) {
-                    const updateReqSpecData = {
-                        product_specs: spec.product_specifications,
-                        product_unit: spec.product_unit,
-                        product_value: spec.product_value,
-                    };
-                    const addReqSpecData = {
-                        ...updateReqSpecData,
-                        product_id: id,
-                    };
-                    spec.product_specs_id
-                        ? updateSpec({
-                              updateReqSpecData,
-                              specId: spec.product_specs_id,
-                          })
-                        : addSpec(addReqSpecData);
-                }
-                for (let id of toDeleteSpecs) deleteSpec(id);
-            } else
-                dispatch(
-                    productActions.addSubAssemblySpecifications(
-                        specificationsState.map((specification) => [
-                            ...specification,
-                        ])
-                    )
-                );
+            for (let spec of specificationsState) {
+                const type = typeProduct ? "product" : "sub_assembly";
+                const updateReqSpecData = {
+                    [`${type}_specs`]: spec[`${type}_specifications`],
+                    [`${type}_unit`]: spec[`${type}_unit`],
+                    [`${type}_value`]: spec[`${type}_value`],
+                };
+                const addReqSpecData = {
+                    ...updateReqSpecData,
+                    [`${type}_id`]: currActive,
+                };
+                spec[`${type}_specs_id`]
+                    ? updateSpec({
+                          updateReqSpecData,
+                          specId: spec[`${type}_specs_id`],
+                      })
+                    : addSpec(addReqSpecData);
+            }
+            for (let id of toDeleteSpecs) deleteSpec(id);
             // dispatch(productActions.setCurrForm("DialogBox"));
             setSavebtnClick(true);
         } else {
             console.log("Validation Failed");
         }
-    };
-    const validation = () => {
-        let isValid = true;
-        let errorMessage = "";
-
-        const iterableData = specificationsState.map((spec) => [
-            spec.product_specifications,
-            spec.product_unit,
-            spec.product_value,
-        ]);
-
-        if (iterableData.some((row) => row.some((sp) => sp.trim() === ""))) {
-            errorMessage += "Please enter all details.\n";
-            isValid = false;
-        }
-
-        seterror(errorMessage);
-
-        return isValid;
     };
 
     return (
@@ -179,14 +187,16 @@ function SpecificationDetails({ type, specifications }) {
             <DynamicTable
                 className="dynamic-table"
                 headers={["S. No.", "Name", "Units", "Value"]}
-                data={specificationsState}
+                specifications={specificationsState}
                 selectedRows={selectedRowsState}
                 onDeleteRow={handleDeleteRow}
                 onInputChange={handleInputChange}
                 toggleRowSelection={toggleRowSelection}
-                id={product.currActive}
+                id={currActive}
                 saveBtnClick={saveBtnClick}
                 setSavebtnClick={setSavebtnClick}
+                makeDataIterable={makeDataIterable}
+                typeProduct={typeProduct}
             />
             {!saveBtnClick && (
                 <>
@@ -208,7 +218,8 @@ function SpecificationDetails({ type, specifications }) {
                             onClick={handleSave}
                         >
                             {specifications.length === 1 &&
-                            !specifications[0].product_unit
+                            (!specifications[0].product_unit ||
+                                !specifications[0].sub_assembly_unit)
                                 ? "Save"
                                 : "Update"}
                         </button>

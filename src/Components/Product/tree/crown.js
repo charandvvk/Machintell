@@ -6,7 +6,7 @@ const Crown = ({ product, nodeId, dispatch, generateChildrenNodes }) => {
     const isAlertDisplayed =
         nodeId.startsWith("s") &&
         node.isChildrenNeeded === "Yes" &&
-        node.mainFunction;
+        !node.fileLocation;
     const children = generateChildrenNodes(product, nodeId, dispatch);
 
     function handleNodeClick() {

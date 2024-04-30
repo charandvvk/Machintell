@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import styles from "./product.module.css";
 import AddNewProduct from "./newProduct/AddNewProduct";
 import SubAssembly from "./subAssembly/subAssembly";
@@ -6,11 +6,11 @@ import ManageProducts from "./manageProducts/manageProducts";
 import AddComponents from "./components/AddComponents";
 import Tree from "./tree/tree";
 import { useDispatch, useSelector } from "react-redux";
-import { backendActions, productActions } from "../../store";
+import { productActions } from "../../store";
 import ProductDetails from "./newProduct/ProductDetails";
 import SubAssemblyDetails from "./subAssembly/subAssemblyDetails";
-import { getData } from "../../utils/http";
-import { useQuery } from "@tanstack/react-query";
+import { deleteData, getData } from "../../utils/http";
+import { useMutation, useQuery } from "@tanstack/react-query";
 // import DialogBox from "./DialogBox";
 
 const Product = () => {
@@ -37,47 +37,47 @@ const Product = () => {
         initialData: [],
     });
 
+    const {
+        mutate: deleteSubassemblyOrComponent,
+        isPending: isDeletingSubassemblyOrComponent,
+    } = useMutation({
+        mutationFn: () =>
+            deleteData(
+                `/deletesubassembly${
+                    currActive.startsWith("c") ? "components" : ""
+                }/${encodeURIComponent(currActive)}`
+            ),
+        onSuccess: () => {
+            dispatch(
+                productActions[
+                    `delete${
+                        currActive.startsWith("s") ? "Subassembly" : "Component"
+                    }`
+                ](currActive)
+            );
+            setWarningFor(null);
+            dispatch(productActions.setCurrForm(null));
+            dispatch(productActions.setActive(""));
+        },
+    });
+
     let isDisabled = true;
     if (currActive) {
         if (
             (currActive.startsWith("p") && !fileLocation) ||
             (currActive.startsWith("s") &&
                 subassembly.isChildrenNeeded !== "No" &&
-                subassembly.mainFunction)
+                !subassembly.fileLocation)
         )
             isDisabled = false;
     }
 
-    const handleDelete = () => {
-        currActive.startsWith("s")
-            ? dispatch(productActions.deleteSubassembly(currActive))
-            : dispatch(productActions.deleteComponent(currActive));
-        setWarningFor(null);
-        dispatch(productActions.setCurrForm(null));
-        dispatch(productActions.setActive(""));
-    };
-
     const toggleFormDisplay = (formType) => {
-        if (formType === "newProduct") {
-            //send the product tree details to the backend
-            if (currActive.startsWith("s") && !subassembly.mainFunction) {
-                const productCopy = JSON.parse(JSON.stringify(product));
-                delete productCopy.subassemblies[currActive];
-                dispatch(backendActions.addProduct(productCopy));
-                dispatch(productActions.reset());
-            } else if (!fileLocation) {
-                dispatch(backendActions.addProduct(product));
-                dispatch(productActions.reset());
-            }
-        } else if (formType === "manageProducts") {
-            if (currActive.startsWith("s") && !subassembly.mainFunction) {
-                const productCopy = JSON.parse(JSON.stringify(product));
-                delete productCopy.subassemblies[currActive];
-                dispatch(backendActions.addProduct(productCopy));
-            } else if (!fileLocation)
-                dispatch(backendActions.addProduct(product));
+        if (
+            (formType === "newProduct" && !fileLocation) ||
+            formType === "manageProducts"
+        )
             dispatch(productActions.reset());
-        }
         dispatch(productActions.setCurrForm(formType));
     };
 
@@ -85,10 +85,10 @@ const Product = () => {
         if (
             (formType === "newProduct" || formType === "manageProducts") &&
             ((currActive.startsWith("p") && fileLocation) ||
-                (currActive.startsWith("s") && !subassembly.mainFunction))
-        ) {
+                (currActive.startsWith("s") && subassembly.fileLocation))
+        )
             setWarningFor(formType);
-        } else toggleFormDisplay(formType);
+        else toggleFormDisplay(formType);
     }
 
     const handleConfirm = (formType) => {
@@ -198,7 +198,7 @@ const Product = () => {
                             Add component
                         </button>
                         {((currActive.startsWith("s") &&
-                            subassemblies[currActive].mainFunction) ||
+                            !subassemblies[currActive].fileLocation) ||
                             currActive.startsWith("c")) && (
                             <button
                                 type="button"
@@ -207,7 +207,13 @@ const Product = () => {
                                 }`}
                                 onClick={() => setWarningFor("delete")}
                             >
-                                Delete
+                                {isDeletingSubassemblyOrComponent
+                                    ? `Deleting ${
+                                          currActive.startsWith("s")
+                                              ? "subassembly"
+                                              : "component"
+                                      }...`
+                                    : "Delete"}
                             </button>
                         )}
                     </div>
@@ -264,7 +270,9 @@ const Product = () => {
                                     <button onClick={() => setWarningFor(null)}>
                                         Cancel
                                     </button>
-                                    <button onClick={handleDelete}>
+                                    <button
+                                        onClick={deleteSubassemblyOrComponent}
+                                    >
                                         Confirm
                                     </button>
                                 </div>

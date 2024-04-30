@@ -41,7 +41,6 @@ const ManageProducts = ({ setWarningFor, productsFetched }) => {
         } else {
             deleteProduct();
             setSelectedAction(null);
-            dispatch(backendActions.deleteProduct(selectedId));
         }
     };
 

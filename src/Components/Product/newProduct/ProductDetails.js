@@ -93,9 +93,9 @@ function ProductDetails({ setWarningFor }) {
                     updateRequestProductData
                 ),
             onSuccess: () => {
-                queryClient.invalidateQueries({
-                    queryKey: ["products"],
-                });
+                // queryClient.invalidateQueries({
+                //     queryKey: ["products"],
+                // });
                 dispatch(
                     productActions.addProductDetails({
                         name: nameRef.current.value,
@@ -116,18 +116,12 @@ function ProductDetails({ setWarningFor }) {
     });
 
     const { mutate: updateSecFn, isPending: isUpdatingSecFn } = useMutation({
-        mutationFn: ({ updateReqSecFnData, secFnId }) => {
-            return sendData(
+        mutationFn: ({ updateReqSecFnData, secFnId }) =>
+            sendData(
                 `/updateproductsecondaryfn/${encodeURIComponent(secFnId)}`,
                 "PUT",
                 updateReqSecFnData
-            );
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: ["productSecFns", id],
-            });
-        },
+            ),
     });
 
     const { mutate: deleteSecFn, isPending: isDeletingSecFn } = useMutation({
@@ -147,13 +141,13 @@ function ProductDetails({ setWarningFor }) {
             { product_sec_fn: "" },
         ]); // Add a new empty secondary function to the state
     };
-    const handleSecondaryFunctionsStateChange = (value, index) => {
+    const handleSecondaryFunctionsChange = (value, index) => {
         setSecondaryFunctions((prevState) => {
-            const updatedSecondaryFunctionsState = prevState.map((obj) => ({
+            const updatedSecondaryFunctions = prevState.map((obj) => ({
                 ...obj,
             }));
-            updatedSecondaryFunctionsState[index].product_sec_fn = value;
-            return updatedSecondaryFunctionsState;
+            updatedSecondaryFunctions[index].product_sec_fn = value;
+            return updatedSecondaryFunctions;
         });
     };
 
@@ -252,10 +246,8 @@ function ProductDetails({ setWarningFor }) {
     return (
         <>
             {isFetchingProduct && <div>Loading product...</div>}
-            {isFetchingSecFns && (
-                <div>Loading product secondary functions...</div>
-            )}
-            {isFetchingSpecs && <div>Loading product specifications...</div>}
+            {isFetchingSecFns && <div>Loading secondary functions...</div>}
+            {isFetchingSpecs && <div>Loading specifications...</div>}
             {isAddingProduct && <div>Adding product...</div>}
             {isAddingSecFn && <div>Adding secondary function...</div>}
             {isUpdatingProduct && <div>Updating product...</div>}
@@ -370,7 +362,7 @@ function ProductDetails({ setWarningFor }) {
                                                         secondaryFunctionState.product_sec_fn
                                                     }
                                                     onChange={(event) =>
-                                                        handleSecondaryFunctionsStateChange(
+                                                        handleSecondaryFunctionsChange(
                                                             event.target.value,
                                                             index
                                                         )
@@ -417,10 +409,9 @@ function ProductDetails({ setWarningFor }) {
                 )}
                 {specifications.length ? (
                     <SpecificationDetails
-                        type="product"
-                        setSpecifications={setSpecifications}
                         specifications={specifications}
                         key={JSON.stringify(specifications)}
+                        emptySpec={emptySpec}
                     />
                 ) : (
                     <div>

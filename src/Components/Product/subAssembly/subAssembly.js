@@ -32,8 +32,6 @@ const SubAssembly = ({ setWarningFor }) => {
 
     const handleSave = () => {
         if (validation()) {
-            console.log("Saving data...");
-            // add subassembly data to backend
             dispatch(
                 productActions.addSubassembly({
                     name: nameRef.current.value,
