@@ -21,7 +21,11 @@ const makeDataIterable = (specifications, typeProduct) => {
     );
 };
 
-function SpecificationDetails({ specifications, emptySpec }) {
+function SpecificationDetails({
+    specifications,
+    setSpecifications,
+    emptySpec,
+}) {
     const [selectedRowsState, setSelectedRowsState] = useState([]); // State to store selected row indices
     const [error, seterror] = useState("");
     const { currActive } = useSelector((state) => state.product);
@@ -30,8 +34,8 @@ function SpecificationDetails({ specifications, emptySpec }) {
         useState(specifications);
     const [saveBtnClick, setSavebtnClick] = useState(
         specifications.length === 1 &&
-            (!specifications[0].product_unit ||
-                !specifications[0].sub_assembly_unit)
+            !specifications[0].product_unit &&
+            !specifications[0].sub_assembly_unit
             ? false
             : true
     ); // State to track save button click
@@ -173,6 +177,7 @@ function SpecificationDetails({ specifications, emptySpec }) {
             }
             for (let id of toDeleteSpecs) deleteSpec(id);
             // dispatch(productActions.setCurrForm("DialogBox"));
+            if (!specificationsState.length) setSpecifications([]);
             setSavebtnClick(true);
         } else {
             console.log("Validation Failed");
@@ -212,14 +217,13 @@ function SpecificationDetails({ specifications, emptySpec }) {
                                 -
                             </button>
                         ) : null}
-
                         <button
                             className={`${styles.savebtn} ${styles.btn}`}
                             onClick={handleSave}
                         >
                             {specifications.length === 1 &&
-                            (!specifications[0].product_unit ||
-                                !specifications[0].sub_assembly_unit)
+                            !specifications[0].product_unit &&
+                            !specifications[0].sub_assembly_unit
                                 ? "Save"
                                 : "Update"}
                         </button>

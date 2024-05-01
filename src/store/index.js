@@ -13,7 +13,6 @@ const initialState = {
     components: {},
     currActive: "",
     currForm: null,
-    hasProducts: null,
 };
 
 const deleteSubassemblyRecursive = (id, subassemblies, components) => {

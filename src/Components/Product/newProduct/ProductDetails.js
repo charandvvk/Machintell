@@ -22,7 +22,7 @@ function ProductDetails({ setWarningFor }) {
     const dispatch = useDispatch();
     const [error, setError] = useState("");
     const [secondaryFunctions, setSecondaryFunctions] = useState([]); // State to store secondary functions
-    const [specifications, setSpecifications] = useState([]); // State to store secondary functions
+    const [specifications, setSpecifications] = useState([]); // State to store specifications
     const [selectedRowsState, setSelectedRowsState] = useState([]); // State to store selected row indices
     const [saveBtnClick, setSavebtnClick] = useState(
         fileLocation ? false : true
@@ -410,6 +410,7 @@ function ProductDetails({ setWarningFor }) {
                 {specifications.length ? (
                     <SpecificationDetails
                         specifications={specifications}
+                        setSpecifications={setSpecifications}
                         key={JSON.stringify(specifications)}
                         emptySpec={emptySpec}
                     />
