@@ -43,8 +43,8 @@ const Product = () => {
     } = useMutation({
         mutationFn: () =>
             deleteData(
-                `/deletesubassembly${
-                    currActive.startsWith("c") ? "components" : ""
+                `/delete${
+                    currActive.startsWith("c") ? "components" : "subassembly"
                 }/${encodeURIComponent(currActive)}`
             ),
         onSuccess: () => {

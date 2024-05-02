@@ -36,7 +36,7 @@ function ProductDetails({ setWarningFor }) {
     useEffect(() => {
         setWarningFor(null);
         setIsFirstMount(false);
-    }, []);
+    }, [setWarningFor]);
 
     const { data: productFetched, isLoading: isFetchingProduct } = useQuery({
         queryKey: ["product", id],

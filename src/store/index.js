@@ -65,7 +65,9 @@ const productSlice = createSlice({
         addSubassemblyDetails(state, { payload }) {
             const { subassemblies, currActive } = state;
             const subassembly = subassemblies[currActive];
-            if (payload.target) {
+            if (payload.target === "component parent")
+                subassembly.isChildrenNeeded = "added";
+            else if (payload.target === "subassembly parent") {
                 const parentId = subassembly.parent;
                 subassemblies[parentId].isChildrenNeeded = "added";
             } else {
@@ -79,23 +81,16 @@ const productSlice = createSlice({
             const { subassemblies, components } = state;
             deleteSubassemblyRecursive(payload, subassemblies, components);
         },
-        addComponents(state, { payload }) {
-            const { currActive, subassemblies } = state;
-            if (
-                currActive.startsWith("s") &&
-                subassemblies[currActive].isChildrenNeeded === "Yes"
-            )
-                subassemblies[currActive].isChildrenNeeded = "added";
-            for (let component of payload) {
-                state.components[component[1]] = {
-                    parent: state.currActive,
-                    name: component[0],
-                    isBoughtUp: component[2],
-                    fileLocation: component[3],
+        addComponent(state, { payload }) {
+            const { currActive, components } = state;
+            if (currActive.startsWith("c"))
+                components[currActive].name = payload.name;
+            else {
+                components[payload.id] = {
+                    name: payload.name,
+                    parent: currActive,
                 };
             }
-            state.currForm = null;
-            state.currActive = "";
         },
         deleteComponent(state, { payload }) {
             delete state.components[payload];

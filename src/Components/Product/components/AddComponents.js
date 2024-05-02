@@ -4,35 +4,110 @@ import styles from "../product.module.css";
 import generateId from "../../../utils/generateId";
 import { useDispatch, useSelector } from "react-redux";
 import { productActions } from "../../../store";
+import { getData, sendData } from "../../../utils/http";
+import { useMutation, useQuery } from "@tanstack/react-query";
+
+const emptyComponent = ["", "", "Yes", ""];
 
 function AddComponents({ setWarningFor }) {
     const [selectedRows, setSelectedRows] = useState([]);
     const [error, seterror] = useState("");
     const dispatch = useDispatch();
-    const { components, currActive } = useSelector((state) => state.product);
-    let initialComponents = [["", "", "Yes", ""]];
-    let currActivePos;
-    if (currActive.startsWith("c")) {
-        initialComponents = Object.entries(components)
-            .filter(
-                ([id, details]) =>
-                    details.parent === components[currActive].parent
-            )
-            .map(([id, details], index) => {
-                if (id === currActive) currActivePos = index;
-                return [
-                    details.name,
-                    id,
-                    details.isBoughtUp,
-                    details.fileLocation,
-                ];
-            });
-    }
-    const [componentsState, setComponentsState] = useState(initialComponents);
+    const { components, currActive, subassemblies } = useSelector(
+        (state) => state.product
+    );
+    const [currActivePos, setCurrActivePos] = useState();
+    const [componentsState, setComponentsState] = useState([
+        [...emptyComponent],
+    ]);
+    const parentId = currActive.startsWith("c")
+        ? components[currActive].parent
+        : null;
+
+    const { data: componentsFetched, isLoading: isFetchingComponents } =
+        useQuery({
+            queryKey: ["components", parentId],
+            queryFn: () =>
+                getData(`/viewcomponents/${encodeURIComponent(parentId)}`),
+            enabled: currActive.startsWith("c"),
+        });
+    useEffect(() => {
+        if (componentsFetched) {
+            setComponentsState(
+                componentsFetched.map((component, index) => {
+                    if (component.comp_id === currActive)
+                        setCurrActivePos(index);
+                    return [
+                        component.item_name,
+                        component.comp_id,
+                        component.bought_up,
+                        component.comp_file_location,
+                    ];
+                })
+            );
+        }
+    }, [componentsFetched, currActive]);
+
+    const { mutate: updateSubassembly, isPending: isUpdatingSubassembly } =
+        useMutation({
+            mutationFn: (updateRequestSubassemblyData) =>
+                sendData(
+                    `/updatesubassembly/${encodeURIComponent(currActive)}`,
+                    "PUT",
+                    updateRequestSubassemblyData
+                ),
+            onSuccess: () => {
+                dispatch(
+                    productActions.addSubassemblyDetails({
+                        target: "component parent",
+                    })
+                );
+            },
+        });
+
+    const { mutate: addComponent, isPending: isAddingComponent } = useMutation({
+        mutationFn: (addReqComponentData) =>
+            sendData("/addcomponents", "POST", addReqComponentData),
+        onSuccess: (_, variables) => {
+            dispatch(
+                productActions.addComponent({
+                    id: variables.comp_id,
+                    name: variables.item_name,
+                })
+            );
+            if (
+                currActive.startsWith("s") &&
+                subassemblies[currActive].isChildrenNeeded === "Yes"
+            ) {
+                const updateRequestSubassemblyData = {
+                    to_add_assemblies: "added",
+                };
+                updateSubassembly(updateRequestSubassemblyData);
+            }
+        },
+    });
+
+    const { mutate: updateComponent, isPending: isUpdatingComponent } =
+        useMutation({
+            mutationFn: (updateReqComponentData) =>
+                sendData(
+                    `/updatecomponents/${encodeURIComponent(currActive)}`,
+                    "PUT",
+                    updateReqComponentData
+                ),
+            onSuccess: (_, variables) => {
+                dispatch(
+                    productActions.addComponent({
+                        id: variables.comp_id,
+                        name: variables.item_name,
+                    })
+                );
+            },
+        });
 
     useEffect(() => {
         setWarningFor(null);
-    }, []);
+    }, [setWarningFor]);
 
     const handleInputChange = (value, rowIndex, cellIndex) => {
         setComponentsState((prevState) => {
@@ -49,7 +124,7 @@ function AddComponents({ setWarningFor }) {
             const updatedComponentsState = prevState.map((component) => [
                 ...component,
             ]);
-            updatedComponentsState.push(["", "", "", ""]);
+            updatedComponentsState.push([...emptyComponent]);
             return updatedComponentsState;
         });
     };
@@ -66,31 +141,40 @@ function AddComponents({ setWarningFor }) {
     const toggleRowSelection = (selectedIndex) => {
         setSelectedRows((prevState) => {
             return prevState.includes(selectedIndex)
-                ? prevState.filter((index) => index != selectedIndex)
+                ? prevState.filter((index) => index !== selectedIndex)
                 : [...prevState, selectedIndex];
         });
     };
 
     const handleSave = () => {
-        if (!currActive.startsWith("c")) {
-            if (validation()) {
-                console.log("saved", componentsState);
-                //send components data to the backend
-                dispatch(
-                    productActions.addComponents(
-                        componentsState.map((component) => [...component])
-                    )
-                );
+        if (validation()) {
+            if (currActive.startsWith("c")) {
+                const component = componentsState[currActivePos];
+                const updateReqComponentData = {
+                    item_name: component[0],
+                    bought_up: component[2],
+                    comp_file_location: component[3],
+                };
+                updateComponent(updateReqComponentData);
             } else {
-                console.log("Validation Failed");
+                for (let component of componentsState) {
+                    const addReqComponentData = {
+                        item_name: component[0],
+                        comp_id: component[1],
+                        bought_up: component[2],
+                        comp_file_location: component[3],
+                        parent_id: currActive,
+                    };
+                    addComponent(addReqComponentData);
+                }
+                setComponentsState([[...emptyComponent]]);
             }
-        }
+        } else console.log("Validation Failed");
     };
 
     const validation = () => {
         let isValid = true;
         let errorMessage = "";
-
         if (
             componentsState.some((row) =>
                 row.some((cell, index) => index !== 2 && cell.trim() === "")
@@ -99,32 +183,39 @@ function AddComponents({ setWarningFor }) {
             errorMessage += "Please enter all details.\n";
             isValid = false;
         }
-
         seterror(errorMessage);
-
         return isValid;
     };
 
     const handleInputBlur = (value, rowIndex, cellIndex) => {
-        if (cellIndex === 0) {
-            setComponentsState((prevState) => {
-                const updatedComponentsState = prevState.map((component) => [
-                    ...component,
-                ]);
-                updatedComponentsState[rowIndex][cellIndex + 1] = generateId(
-                    value,
-                    "c"
-                );
-                return updatedComponentsState;
-            });
-        }
+        setComponentsState((prevState) => {
+            if (prevState[rowIndex][cellIndex + 1]) return prevState;
+            const updatedComponentsState = prevState.map((component) => [
+                ...component,
+            ]);
+            updatedComponentsState[rowIndex][cellIndex + 1] = generateId(
+                value,
+                "c"
+            );
+            return updatedComponentsState;
+        });
     };
 
     return (
         <div>
+            {isFetchingComponents && "Loading components..."}
+            {isAddingComponent && "Adding component..."}
+            {isUpdatingComponent && "Updating component..."}
+            {isUpdatingSubassembly && "Updating subassembly..."}
             <DynamicTable
                 className="dynamic-table"
-                headers={["Item name", "UID", "Bought-up", "File Location"]}
+                headers={[
+                    "S. No.",
+                    "Item name",
+                    "UID",
+                    "Bought-up",
+                    "File Location",
+                ]}
                 data={componentsState}
                 selectedRows={selectedRows}
                 onRowSelection={(index) => setSelectedRows([index])}
@@ -139,31 +230,26 @@ function AddComponents({ setWarningFor }) {
             <div className={styles.buttonGroup}>
                 {!currActive.startsWith("c") && (
                     <>
-                        <div>
+                        <button className={styles.btn} onClick={handleAddRow}>
+                            +
+                        </button>
+                        {componentsState.length ? (
                             <button
-                                className={styles.btn2}
-                                onClick={handleAddRow}
-                            >
-                                Add Component
-                            </button>
-                        </div>
-                        <div>
-                            <button
-                                className={styles.btn2}
+                                className={styles.btn}
                                 onClick={handleDeleteRow}
                             >
-                                Delete Component
+                                -
                             </button>
-                        </div>
+                        ) : null}
                     </>
                 )}
-                <div>
-                    <button className={styles.btn2} onClick={handleSave}>
-                        Save
-                    </button>
-                </div>
+                <button
+                    className={`${styles.btn} ${styles.savebtn} `}
+                    onClick={handleSave}
+                >
+                    {currActive.startsWith("c") ? "Update" : "Save"}
+                </button>
             </div>
-
             {error && (
                 <div className={styles.error}>
                     <pre>{error}</pre>

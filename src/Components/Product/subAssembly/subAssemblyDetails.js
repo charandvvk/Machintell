@@ -48,7 +48,7 @@ function SubAssemblyDetails({ setWarningFor }) {
     useEffect(() => {
         setWarningFor(null);
         setIsFirstMount(false);
-    }, []);
+    }, [setWarningFor]);
 
     const { data: subassemblyFetched, isLoading: isFetchingSubassembly } =
         useQuery({
@@ -84,6 +84,27 @@ function SubAssemblyDetails({ setWarningFor }) {
         if (specsFetched) setSpecifications(specsFetched);
     }, [specsFetched]);
 
+    const { mutate: updateSubassembly, isPending: isUpdatingSubassembly } =
+        useMutation({
+            mutationFn: ({ updateRequestSubassemblyData, id }) =>
+                sendData(
+                    `/updatesubassembly/${encodeURIComponent(id)}`,
+                    "PUT",
+                    updateRequestSubassemblyData
+                ),
+            onSuccess: (_, variables) => {
+                dispatch(
+                    productActions.addSubassemblyDetails({
+                        name: nameRef.current.value,
+                        isChildrenNeeded:
+                            variables.updateRequestSubassemblyData
+                                .to_add_assemblies,
+                        target: variables.target,
+                    })
+                );
+            },
+        });
+
     const { mutate: addSubassembly, isPending: isAddingSubassembly } =
         useMutation({
             mutationFn: (addRequestSubassemblyData) =>
@@ -105,30 +126,9 @@ function SubAssemblyDetails({ setWarningFor }) {
                     updateSubassembly({
                         updateRequestSubassemblyData,
                         parent,
-                        target: "parent",
+                        target: "subassembly parent",
                     });
                 }
-            },
-        });
-
-    const { mutate: updateSubassembly, isPending: isUpdatingSubassembly } =
-        useMutation({
-            mutationFn: ({ updateRequestSubassemblyData, id }) =>
-                sendData(
-                    `/updatesubassembly/${encodeURIComponent(id)}`,
-                    "PUT",
-                    updateRequestSubassemblyData
-                ),
-            onSuccess: (_, variables) => {
-                dispatch(
-                    productActions.addSubassemblyDetails({
-                        name: nameRef.current.value,
-                        isChildrenNeeded:
-                            variables.updateRequestSubassemblyData
-                                .to_add_assemblies,
-                        target: variables.target,
-                    })
-                );
             },
         });
 

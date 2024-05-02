@@ -27,6 +27,7 @@ function DynamicTable({
                         onInputChange(e.target.value, rowIndex, cellIndex)
                     }
                     onBlur={(e) =>
+                        !cellIndex &&
                         onInputBlur(e.target.value, rowIndex, cellIndex)
                     }
                 />
@@ -71,11 +72,20 @@ function DynamicTable({
                                 ? "lightgray"
                                 : "white",
                         }}
-                        onClick={() =>
-                            !currActive.startsWith("c") &&
-                            toggleRowSelection(rowIndex)
-                        }
                     >
+                        <th
+                            className={`${styles.th} ${
+                                currActive.startsWith("c") &&
+                                currActivePos !== rowIndex &&
+                                styles.disabled
+                            }`}
+                            onClick={() =>
+                                !currActive.startsWith("c") &&
+                                toggleRowSelection(rowIndex)
+                            }
+                        >
+                            Component {rowIndex + 1}
+                        </th>
                         {row.map((cell, cellIndex) => (
                             <td className={styles.td} key={cellIndex}>
                                 {renderCell(cell, rowIndex, cellIndex)}
