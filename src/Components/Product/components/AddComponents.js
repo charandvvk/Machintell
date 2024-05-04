@@ -13,7 +13,7 @@ function AddComponents({ setWarningFor }) {
     const [selectedRows, setSelectedRows] = useState([]);
     const [error, seterror] = useState("");
     const dispatch = useDispatch();
-    const { components, currActive, subassemblies } = useSelector(
+    const { components, currActive, subassemblies, id } = useSelector(
         (state) => state.product
     );
     const [currActivePos, setCurrActivePos] = useState();
@@ -164,6 +164,7 @@ function AddComponents({ setWarningFor }) {
                         bought_up: component[2],
                         comp_file_location: component[3],
                         parent_id: currActive,
+                        product_id: id,
                     };
                     addComponent(addReqComponentData);
                 }

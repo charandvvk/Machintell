@@ -13,12 +13,12 @@ const SubAssembly = ({ setWarningFor }) => {
 
     useEffect(() => {
         setWarningFor(null);
-    }, []);
+    }, [setWarningFor]);
 
     useEffect(() => {
-        dispatch(productActions.addSubassemblyPlaceholderParent());
+        dispatch(productActions.addSubassemblyPlaceholder());
         return () => {
-            dispatch(productActions.removeSubassemblyPlaceholderParent());
+            dispatch(productActions.deleteSubassemblyPlaceholder());
         };
     }, [dispatch]);
 

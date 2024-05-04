@@ -4,15 +4,10 @@ const initialState = {
     name: "",
     fileLocation: "",
     id: "",
-    subassemblies: {
-        untitled: {
-            name: "Untitled",
-            parent: "",
-        },
-    },
+    subassemblies: {},
     components: {},
     currActive: "",
-    currForm: null,
+    currForm: "",
 };
 
 const deleteSubassemblyRecursive = (id, subassemblies, components) => {
@@ -44,11 +39,14 @@ const productSlice = createSlice({
             state.name = payload.name;
             delete state.fileLocation;
         },
-        addSubassemblyPlaceholderParent(state) {
-            state.subassemblies.untitled.parent = state.currActive;
+        addSubassemblyPlaceholder(state) {
+            state.subassemblies.untitled = {
+                name: "Untitled",
+                parent: state.currActive,
+            };
         },
-        removeSubassemblyPlaceholderParent(state) {
-            state.subassemblies.untitled.parent = "";
+        deleteSubassemblyPlaceholder(state) {
+            delete state.subassemblies.untitled;
         },
         addSubassembly(state, { payload }) {
             const subassembly = {

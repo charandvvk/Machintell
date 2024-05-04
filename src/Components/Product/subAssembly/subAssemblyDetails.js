@@ -263,6 +263,7 @@ function SubAssemblyDetails({ setWarningFor }) {
                 ...updateRequestSubassemblyData,
                 sub_assembly_id: id,
                 product_id: productId,
+                parent_id: parent,
             };
             fileLocation
                 ? addSubassembly(addRequestSubassemblyData)
