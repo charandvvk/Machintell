@@ -25,13 +25,13 @@ function AddNewProduct({ product, onSave, setWarningFor }) {
 
         // Check if productName is empty
         if (nameRef.current.value.trim() === "") {
-            errorMessage += "Please enter product name.\n";
+            errorMessage += "* Please enter a product name.\n";
             isValid = false;
         }
 
         // Check if fileLocation is empty
         if (fileLocationRef.current.value.trim() === "") {
-            errorMessage += "Please enter file location.\n";
+            errorMessage += "* Please enter a file location.\n";
             isValid = false;
         }
 
@@ -113,6 +113,17 @@ function AddNewProduct({ product, onSave, setWarningFor }) {
                                 <tr>
                                     <th className={styles.th}>
                                         Name of the Product
+                                        {error &&
+                                            nameRef.current.value.trim() ===
+                                                "" && (
+                                                <span
+                                                    className={
+                                                        styles.requiredSymbol
+                                                    }
+                                                >
+                                                    *
+                                                </span>
+                                            )}
                                     </th>
                                     <td className={styles.td}>
                                         <input
@@ -123,13 +134,27 @@ function AddNewProduct({ product, onSave, setWarningFor }) {
                                             defaultValue={
                                                 product && product.name
                                             }
+                                            onChange={() => setError("")} // Clear error on input change
                                         />
                                     </td>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <th className={styles.th}>File location</th>
+                                    <th className={styles.th}>
+                                        File location
+                                        {error &&
+                                            fileLocationRef.current.value.trim() ===
+                                                "" && (
+                                                <span
+                                                    className={
+                                                        styles.requiredSymbol
+                                                    }
+                                                >
+                                                    *
+                                                </span>
+                                            )}
+                                    </th>
                                     <td className={styles.td}>
                                         <input
                                             ref={fileLocationRef}
@@ -139,6 +164,7 @@ function AddNewProduct({ product, onSave, setWarningFor }) {
                                             defaultValue={
                                                 product && product.fileLocation
                                             }
+                                            onChange={() => setError("")}
                                         />
                                     </td>
                                 </tr>

@@ -148,7 +148,7 @@ function SpecificationDetails({
                 row.some((sp) => sp.trim() === "")
             )
         ) {
-            errorMessage += "Please enter all details.\n";
+            errorMessage += "* Please enter all details.\n";
             isValid = false;
         }
         seterror(errorMessage);

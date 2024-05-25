@@ -140,6 +140,7 @@ function ProductDetails({ setWarningFor }) {
             ...prevState,
             { product_sec_fn: "" },
         ]); // Add a new empty secondary function to the state
+        setError("");
     };
     const handleSecondaryFunctionsChange = (value, index) => {
         setSecondaryFunctions((prevState) => {
@@ -175,6 +176,7 @@ function ProductDetails({ setWarningFor }) {
                 })
             );
             setSelectedRowsState([]);
+            setError("");
         }
     };
 
@@ -192,13 +194,13 @@ function ProductDetails({ setWarningFor }) {
 
         // Check if mainFunction is empty
         if (mainFunction.trim() === "") {
-            errorMessage += "Please enter Main Function.\n";
+            errorMessage += "* Please enter Main Function.\n";
             isValid = false;
         }
 
         // Check if Secondary Function is empty
         if (secondaryFunctions.some((sf) => sf.product_sec_fn.trim() === "")) {
-            errorMessage += "Please enter all Secondary Functions.\n";
+            errorMessage += "* Please enter all Secondary Functions.\n";
             isValid = false;
         }
 
@@ -310,16 +312,27 @@ function ProductDetails({ setWarningFor }) {
                                     <tr>
                                         <th className={styles.th}>
                                             Main Functions
+                                            {error &&
+                                                mainFunction.trim() === "" && (
+                                                    <span
+                                                        className={
+                                                            styles.requiredSymbol
+                                                        }
+                                                    >
+                                                        *
+                                                    </span>
+                                                )}
                                         </th>
                                         <td className={styles.td}>
                                             <textarea
                                                 className={styles.input}
                                                 value={mainFunction}
-                                                onChange={(e) =>
+                                                onChange={(e) => {
                                                     setMainFunction(
                                                         e.target.value
-                                                    )
-                                                }
+                                                    );
+                                                    setError("");
+                                                }}
                                             />
                                         </td>
                                     </tr>
@@ -334,7 +347,7 @@ function ProductDetails({ setWarningFor }) {
                         {!saveBtnClick && (
                             <tbody>
                                 {secondaryFunctions.map(
-                                    (secondaryFunctionState, index) => (
+                                    (secondaryFunction, index) => (
                                         <tr
                                             key={index}
                                             style={{
@@ -353,20 +366,32 @@ function ProductDetails({ setWarningFor }) {
                                                 }
                                             >
                                                 Secondary function {index + 1}
+                                                {secondaryFunction.product_sec_fn.trim() ===
+                                                    "" &&
+                                                    error && (
+                                                        <span
+                                                            className={
+                                                                styles.requiredSymbol
+                                                            }
+                                                        >
+                                                            *
+                                                        </span>
+                                                    )}
                                             </th>
                                             <td className={styles.td}>
                                                 <input
                                                     type="text"
                                                     className={styles.input}
                                                     value={
-                                                        secondaryFunctionState.product_sec_fn
+                                                        secondaryFunction.product_sec_fn
                                                     }
-                                                    onChange={(event) =>
+                                                    onChange={(event) => {
                                                         handleSecondaryFunctionsChange(
                                                             event.target.value,
                                                             index
-                                                        )
-                                                    }
+                                                        );
+                                                        setError("");
+                                                    }}
                                                 />
                                             </td>
                                         </tr>
