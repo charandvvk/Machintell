@@ -135,6 +135,7 @@
 }
 
 .btn2 {
+    float: right;
     padding: 2px;
 }
 
@@ -229,4 +230,11 @@
 
 .hidden {
     display: none;
+}
+
+.error,
+.requiredSymbol {
+    color: red;
+    font-weight: 500;
+    font-style: italic;
 }
