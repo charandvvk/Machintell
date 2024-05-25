@@ -5,6 +5,9 @@ import classes from "../product.module.css";
 import AddNewProduct from "../newProduct/AddNewProduct";
 import { deleteData, getData, queryClient } from "../../../utils/http";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import Pagination from "./pagination";
+
+const productCountPerPage = 10;
 
 const ManageProducts = ({ setWarningFor, productsFetched }) => {
     // const { products } = useSelector((state) => state.backend);
@@ -14,6 +17,13 @@ const ManageProducts = ({ setWarningFor, productsFetched }) => {
     const selectedProduct = productsFetched.find(
         (product) => product.product_id === selectedId
     );
+    const [currPageNumber, setCurrPageNumber] = useState(1);
+    const beginIndex = (currPageNumber - 1) * productCountPerPage;
+    const displayedProducts = productsFetched.slice(
+        beginIndex,
+        beginIndex + productCountPerPage
+    );
+    const pageCount = Math.ceil(productsFetched.length / productCountPerPage);
 
     useEffect(() => {
         setWarningFor(null);
@@ -52,7 +62,7 @@ const ManageProducts = ({ setWarningFor, productsFetched }) => {
             dispatch(productActions.set(productTreeFetched));
             queryClient.removeQueries(["productTree", selectedId]);
         }
-    }, [productTreeFetched]);
+    }, [productTreeFetched, dispatch, selectedId]);
 
     const handleConfirm = () => {
         if (selectedAction === "edit") viewProductTree();
@@ -96,7 +106,7 @@ const ManageProducts = ({ setWarningFor, productsFetched }) => {
                 <div className={classes.select}>
                     <div className={classes.title}>Select a product:</div>
                     <div className={classes.products}>
-                        {productsFetched.map((product) => (
+                        {displayedProducts.map((product) => (
                             <div
                                 key={product.product_id}
                                 onClick={() =>
@@ -114,6 +124,11 @@ const ManageProducts = ({ setWarningFor, productsFetched }) => {
                             </div>
                         ))}
                     </div>
+                    <Pagination
+                        pageCount={pageCount}
+                        currPageNumber={currPageNumber}
+                        setCurrPageNumber={setCurrPageNumber}
+                    />
                     <div className={classes.actions}>
                         <button
                             onClick={() => setSelectedAction("edit")}
