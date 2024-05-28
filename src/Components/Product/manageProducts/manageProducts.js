@@ -38,6 +38,8 @@ const ManageProducts = ({ setWarningFor, productsFetched }) => {
                 });
                 if (productsFetched.length === 1)
                     dispatch(productActions.setCurrForm(null));
+                if (displayedProducts.length === 1)
+                    setCurrPageNumber((prevState) => prevState - 1);
             },
         }
     );
@@ -123,11 +125,13 @@ const ManageProducts = ({ setWarningFor, productsFetched }) => {
                             </div>
                         ))}
                     </div>
-                    <Pagination
-                        pageCount={pageCount}
-                        currPageNumber={currPageNumber}
-                        setCurrPageNumber={setCurrPageNumber}
-                    />
+                    {pageCount > 1 && (
+                        <Pagination
+                            pageCount={pageCount}
+                            currPageNumber={currPageNumber}
+                            setCurrPageNumber={setCurrPageNumber}
+                        />
+                    )}
                     <div className={classes.actions}>
                         <button
                             onClick={() => setSelectedAction("edit")}
