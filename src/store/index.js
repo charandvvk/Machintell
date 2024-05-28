@@ -111,28 +111,12 @@ const productSlice = createSlice({
     },
 });
 
-const backendSlice = createSlice({
-    name: "backend",
-    initialState: { products: [] },
-    reducers: {
-        duplicateProduct(state, { payload }) {
-            const product = JSON.parse(JSON.stringify(payload.product));
-            product.name = payload.name;
-            product.fileLocation = payload.fileLocation;
-            product.id = payload.id;
-            state.products.push(product);
-        },
-    },
-});
-
 const store = configureStore({
     reducer: {
         product: productSlice.reducer,
-        backend: backendSlice.reducer,
     },
 });
 
 export default store;
 
 export const productActions = productSlice.actions;
-export const backendActions = backendSlice.actions;

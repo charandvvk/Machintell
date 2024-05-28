@@ -1,10 +1,17 @@
 import React, { useEffect, useRef, useState } from "react";
 import styles from "../product.module.css";
 import { useDispatch } from "react-redux";
-import { backendActions, productActions } from "../../../store";
+import { productActions } from "../../../store";
 import generateId from "../../../utils/generateId";
+import { useMutation } from "@tanstack/react-query";
+import { queryClient, sendData } from "../../../utils/http";
 
-function AddNewProduct({ product, onSave, setWarningFor }) {
+function AddNewProduct({
+    product,
+    setWarningFor,
+    setSelectedAction,
+    setSelectedId,
+}) {
     const nameRef = useRef();
     const fileLocationRef = useRef();
     const [error, setError] = useState("");
@@ -41,18 +48,30 @@ function AddNewProduct({ product, onSave, setWarningFor }) {
         return isValid;
     };
 
+    const { mutate: addDuplicateProduct, isPending: isAddingDuplicateProduct } =
+        useMutation({
+            mutationFn: (addRequestDuplicateProductData) =>
+                sendData(
+                    "/addduplicateproduct",
+                    "POST",
+                    addRequestDuplicateProductData
+                ),
+            onSuccess: ({ data }) => {
+                queryClient.invalidateQueries({
+                    queryKey: ["products"],
+                });
+                setSelectedAction(null);
+                setSelectedId(data);
+            },
+        });
+
     const handleConfirm = () => {
-        const name = nameRef.current.value;
-        const id = generateId(name, "p");
-        dispatch(
-            backendActions.duplicateProduct({
-                name,
-                fileLocation: fileLocationRef.current.value,
-                id,
-                product,
-            })
-        );
-        onSave(id);
+        const addRequestDuplicateProductData = {
+            id: product.product_id,
+            name: nameRef.current.value,
+            fileLocation: fileLocationRef.current.value,
+        };
+        addDuplicateProduct(addRequestDuplicateProductData);
     };
 
     const handleSave = () => {
@@ -65,17 +84,16 @@ function AddNewProduct({ product, onSave, setWarningFor }) {
             const name = nameRef.current.value;
             const fileLocation = fileLocationRef.current.value;
             if (product) {
-                console.log(name, fileLocation);
                 if (
-                    product.name === name &&
-                    product.fileLocation === fileLocation
+                    product.product_name === name &&
+                    product.File_Location === fileLocation
                 )
                     setWarning(
                         "Do you want to save with same name and file location?"
                     );
-                else if (product.name === name)
+                else if (product.product_name === name)
                     setWarning("Do you want to save with same name?");
-                else if (product.fileLocation === fileLocation)
+                else if (product.File_Location === fileLocation)
                     setWarning("Do you want to save with same file location?");
                 else handleConfirm();
             } else
@@ -86,13 +104,12 @@ function AddNewProduct({ product, onSave, setWarningFor }) {
                         id: generateId(name, "p"),
                     })
                 );
-        } else {
-            console.log("Validation failed");
         }
     };
 
     return (
         <>
+            {isAddingDuplicateProduct && <div>Adding duplicate product...</div>}
             {warning && (
                 <div className={styles.modal}>
                     <div>{warning}</div>
@@ -132,7 +149,7 @@ function AddNewProduct({ product, onSave, setWarningFor }) {
                                             type="text"
                                             required
                                             defaultValue={
-                                                product && product.name
+                                                product && product.product_name
                                             }
                                             onChange={() => setError("")} // Clear error on input change
                                         />
@@ -162,7 +179,7 @@ function AddNewProduct({ product, onSave, setWarningFor }) {
                                             type="text"
                                             required
                                             defaultValue={
-                                                product && product.fileLocation
+                                                product && product.File_Location
                                             }
                                             onChange={() => setError("")}
                                         />
@@ -176,7 +193,7 @@ function AddNewProduct({ product, onSave, setWarningFor }) {
                                 className={styles.btn2}
                                 onClick={handleSave}
                             >
-                                Save
+                                {product ? "Duplicate" : "Save"}
                             </button>
                         </div>
                     </div>

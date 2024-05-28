@@ -10,7 +10,6 @@ import Pagination from "./pagination";
 const productCountPerPage = 10;
 
 const ManageProducts = ({ setWarningFor, productsFetched }) => {
-    // const { products } = useSelector((state) => state.backend);
     const dispatch = useDispatch();
     const [selectedId, setSelectedId] = useState(null);
     const [selectedAction, setSelectedAction] = useState(null);
@@ -65,16 +64,15 @@ const ManageProducts = ({ setWarningFor, productsFetched }) => {
     }, [productTreeFetched, dispatch, selectedId]);
 
     const handleConfirm = () => {
-        if (selectedAction === "edit") viewProductTree();
-        else if (selectedAction === "duplicate")
+        if (selectedAction === "edit") {
+            viewProductTree();
+            setSelectedAction(null);
+        } else if (selectedAction === "duplicate")
             setSelectedAction("confirmDuplicate");
-        else deleteProduct();
-        setSelectedAction(null);
-    };
-
-    const handleSave = (id) => {
-        setSelectedAction(null);
-        setSelectedId(id);
+        else {
+            deleteProduct();
+            setSelectedAction(null);
+        }
     };
 
     return (
@@ -85,8 +83,9 @@ const ManageProducts = ({ setWarningFor, productsFetched }) => {
                 selectedAction === "confirmDuplicate" ? (
                     <AddNewProduct
                         product={selectedProduct}
-                        onSave={handleSave}
                         setWarningFor={setWarningFor}
+                        setSelectedAction={setSelectedAction}
+                        setSelectedId={setSelectedId}
                     />
                 ) : (
                     <div className={classes.modal}>
