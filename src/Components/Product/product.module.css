@@ -59,10 +59,7 @@
     /* border-left:1px solid #00153E; */
     border-right: 1px solid #00153e;
     justify-content: center;
-}
-.leftcolTitle {
-    /* display: flex; */
-    justify-content: center;
+    overflow: auto;
 }
 .buttons {
     display: flex;
@@ -163,7 +160,7 @@
     background: #e8e8e8;
 }
 
-.cursor:hover {
+.cursor {
     cursor: pointer;
 }
 
@@ -172,7 +169,7 @@
 }
 
 .children {
-    margin-left: 40px;
+    margin-left: 24px;
 }
 
 .subassembly {
@@ -182,9 +179,26 @@
 }
 
 .alert {
-    width: 15px;
-    height: 15px;
-    background: orangered;
+    position: relative;
+}
+
+.triangle {
+    width: 0;
+    height: 0;
+    border-left: 7.5px solid transparent;
+    border-right: 7.5px solid transparent;
+    border-bottom: 11.25px solid red;
+    position: absolute;
+    left: 3.25px;
+    top: 3.75px;
+}
+
+.triangle-border {
+    width: 0;
+    height: 0;
+    border-left: 11.25px solid transparent;
+    border-right: 11.25px solid transparent;
+    border-bottom: 16.875px solid black;
 }
 
 .disabled {
@@ -237,4 +251,35 @@
     color: red;
     font-weight: 500;
     font-style: italic;
+}
+
+.expandable {
+    display: flex;
+    border: 1px solid black;
+}
+
+.toggler {
+    cursor: pointer;
+    background: aliceblue;
+    width: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rotate {
+    transform: rotate(90deg);
+}
+
+.left-border {
+    border-left: 1px solid black;
+}
+
+.text {
+    padding-left: 5px;
+    user-select: none;
+}
+
+.grow {
+    flex-grow: 1;
 }

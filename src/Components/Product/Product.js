@@ -226,11 +226,7 @@ const Product = () => {
             </div>
             <div className={styles.container}>
                 <div className={styles.col}>
-                    <div className={styles.leftcol}>
-                        <div className={styles.leftcolTitle}>
-                            {name && <Tree />}
-                        </div>
-                    </div>
+                    <div className={styles.leftcol}>{name && <Tree />}</div>
                     <div className={styles.rightcol}>
                         {warningFor && warningFor !== "delete" && (
                             <div className={styles.modal}>
