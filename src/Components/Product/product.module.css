@@ -50,16 +50,21 @@
     margin: 0%;
     padding: 0%;
     width: 100%;
+    display: flex;
 }
 .leftcol {
     float: left;
     /* background: white; */
-    width: 25%;
     height: 468px;
     /* border-left:1px solid #00153E; */
-    border-right: 1px solid #00153e;
     justify-content: center;
     overflow: auto;
+}
+.leftcol-width {
+    width: 25%;
+}
+.border-right {
+    border-right: 1px solid #00153e;
 }
 .buttons {
     display: flex;
@@ -76,14 +81,11 @@
 }
 
 .rightcol {
-    display: flex;
-    /* background: white; */
-    width: 75%;
     height: 468px;
-    background: white;
-    /* border-left:1px solid #00153E; */
-    border-right: 1px solid #00153e;
+    padding: 0 50px;
+    display: flex;
     justify-content: center;
+    width: 100%;
 }
 .h2 {
     display: flex;
@@ -210,13 +212,23 @@
     display: flex;
     flex-wrap: wrap;
 }
-
+.card {
+    width: calc(100% / 3);
+    min-width: 425px;
+}
 .product {
     background: silver;
     border: 1px solid black;
     padding: 5px;
     min-width: 105px;
     height: 35px;
+    text-align: center;
+}
+
+.stats {
+    background: aliceblue;
+    border: 1px solid black;
+    padding: 5px;
 }
 
 .active {
@@ -282,4 +294,8 @@
 
 .grow {
     flex-grow: 1;
+}
+
+.status {
+    font-size: small;
 }

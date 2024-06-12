@@ -11,7 +11,7 @@ import ProductDetails from "./newProduct/ProductDetails";
 import SubAssemblyDetails from "./subAssembly/subAssemblyDetails";
 import { deleteData, getData } from "../../utils/http";
 import { useMutation, useQuery } from "@tanstack/react-query";
-// import DialogBox from "./DialogBox";
+import Dashboard from "./Dashboard";
 
 const Product = () => {
     const product = useSelector((state) => state.product);
@@ -31,11 +31,24 @@ const Product = () => {
         itemNotSaved = currActive.startsWith("p") ? name : subassembly.name;
     }
 
-    const { data: productsFetched, isPending: isFetchingProducts } = useQuery({
+    const {
+        data: productsFetched,
+        isFetching: isFetchingProducts,
+        error: getProductsError,
+    } = useQuery({
         queryKey: ["products"],
-        queryFn: () => getData("/viewproducts"),
+        queryFn: () => getData("products"),
         initialData: [],
     });
+
+    const parentId = currActive.startsWith("c")
+        ? components[currActive].parent
+        : null;
+    const parent = parentId
+        ? parentId.startsWith("p")
+            ? "products"
+            : "subassemblies"
+        : null;
 
     const {
         mutate: deleteSubassemblyOrComponent,
@@ -43,8 +56,10 @@ const Product = () => {
     } = useMutation({
         mutationFn: () =>
             deleteData(
-                `/delete${
-                    currActive.startsWith("c") ? "components" : "subassembly"
+                `${
+                    currActive.startsWith("c")
+                        ? `${parent}/${encodeURIComponent(parentId)}/components`
+                        : "subassemblies"
                 }/${encodeURIComponent(currActive)}`
             ),
         onSuccess: () => {
@@ -99,6 +114,8 @@ const Product = () => {
     function displayForm() {
         if (currForm === "newProduct")
             return <AddNewProduct setWarningFor={setWarningFor} />;
+        else if (currForm === "dashboard")
+            return <Dashboard setWarningFor={setWarningFor} />;
         else if (currForm === "manageProducts")
             return (
                 <ManageProducts
@@ -122,10 +139,16 @@ const Product = () => {
                 />
             );
         }
-        // else if (currForm === "DialogBox") {
-        //     return <DialogBox />;
-        // }
     }
+
+    const fetchProductsStatus = (
+        <div className={styles.status}>
+            {isFetchingProducts && "Fetching products..."}
+            {!isFetchingProducts &&
+                getProductsError &&
+                getProductsError.message}
+        </div>
+    );
 
     return (
         <>
@@ -153,9 +176,7 @@ const Product = () => {
                             }}
                             disabled={!productsFetched.length}
                         >
-                            {isFetchingProducts
-                                ? "Loading status"
-                                : "Manage products"}
+                            Manage Products{fetchProductsStatus}
                         </button>
                     </div>
                     <div className={styles.columnTitle}>Product Details</div>
@@ -220,14 +241,58 @@ const Product = () => {
                     <div className={styles.columnTitle}>Main Assemblies</div>
                 </div>
                 <div className={styles.rightbox}>
-                    <div></div>
+                    <div className={styles.buttons}>
+                        <button
+                            type="button"
+                            className={`${styles.btn} ${
+                                currForm === "dashboard" && styles.active
+                            }`}
+                            onClick={() => {
+                                handleToggleFormType("dashboard");
+                            }}
+                            disabled={!productsFetched.length}
+                        >
+                            Product dashboard{fetchProductsStatus}
+                        </button>
+                        <button
+                            type="button"
+                            className={`${styles.btn} ${
+                                currForm === "tree" && styles.active
+                            }`}
+                            onClick={() => {
+                                handleToggleFormType("components");
+                            }}
+                            disabled={
+                                isDisabled ||
+                                (currForm === "components" && warningFor)
+                            }
+                        >
+                            Product tree
+                        </button>
+                    </div>
                     <div className={styles.columnTitle}>View</div>
                 </div>
             </div>
             <div className={styles.container}>
                 <div className={styles.col}>
-                    <div className={styles.leftcol}>{name && <Tree />}</div>
-                    <div className={styles.rightcol}>
+                    <div
+                        className={`${styles.leftcol} ${
+                            currForm !== "dashboard" &&
+                            currForm !== "tree" &&
+                            `${styles["leftcol-width"]} ${styles["border-right"]}`
+                        }`}
+                    >
+                        {name &&
+                            currForm !== "dashboard" &&
+                            currForm !== "tree" && <Tree />}
+                    </div>
+                    <div
+                        className={`${styles.rightcol} ${
+                            currForm !== "dashboard" &&
+                            currForm !== "tree" &&
+                            styles["rightcol-width"]
+                        }`}
+                    >
                         {warningFor && warningFor !== "delete" && (
                             <div className={styles.modal}>
                                 <div>
@@ -274,8 +339,8 @@ const Product = () => {
                                 </div>
                             </div>
                         )}
-                        <div className={warningFor ? styles.hidden : ""}>
-                            <div>{displayForm()}</div>
+                        <div className={warningFor ? styles.hidden : null}>
+                            {displayForm()}
                         </div>
                     </div>
                 </div>

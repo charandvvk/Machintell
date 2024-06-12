@@ -20,11 +20,11 @@ function AddNewProduct({
 
     useEffect(() => {
         setWarningFor(null);
-    }, []);
+    }, [setWarningFor]);
 
     useEffect(() => {
         if (!product) dispatch(productActions.addProductName());
-    }, [dispatch]);
+    }, [dispatch, product]);
 
     const validation = () => {
         let isValid = true;
@@ -48,22 +48,26 @@ function AddNewProduct({
         return isValid;
     };
 
-    const { mutate: addDuplicateProduct, isPending: isAddingDuplicateProduct } =
-        useMutation({
-            mutationFn: (addRequestDuplicateProductData) =>
-                sendData(
-                    "/addduplicateproduct",
-                    "POST",
-                    addRequestDuplicateProductData
-                ),
-            onSuccess: ({ data }) => {
-                queryClient.invalidateQueries({
-                    queryKey: ["products"],
-                });
-                setSelectedAction(null);
-                setSelectedId(data);
-            },
-        });
+    const {
+        mutate: addDuplicateProduct,
+        isPending: isAddingDuplicateProduct,
+        error: addProductDuplicateError,
+    } = useMutation({
+        mutationFn: (addRequestDuplicateProductData) =>
+            sendData(
+                "products/duplicate",
+                "POST",
+                addRequestDuplicateProductData
+            ),
+        onSuccess: (data) => {
+            queryClient.invalidateQueries({
+                queryKey: ["products"],
+            });
+            setSelectedAction(null);
+            setSelectedId(data);
+            alert("Duplicated successfully.");
+        },
+    });
 
     const handleConfirm = () => {
         const addRequestDuplicateProductData = {
@@ -85,15 +89,15 @@ function AddNewProduct({
             const fileLocation = fileLocationRef.current.value;
             if (product) {
                 if (
-                    product.product_name === name &&
-                    product.File_Location === fileLocation
+                    product.name === name &&
+                    product.file_location === fileLocation
                 )
                     setWarning(
                         "Do you want to save with same name and file location?"
                     );
-                else if (product.product_name === name)
+                else if (product.name === name)
                     setWarning("Do you want to save with same name?");
-                else if (product.File_Location === fileLocation)
+                else if (product.file_location === fileLocation)
                     setWarning("Do you want to save with same file location?");
                 else handleConfirm();
             } else
@@ -110,6 +114,7 @@ function AddNewProduct({
     return (
         <>
             {isAddingDuplicateProduct && <div>Adding duplicate product...</div>}
+            {addProductDuplicateError && addProductDuplicateError.message}
             {warning && (
                 <div className={styles.modal}>
                     <div>{warning}</div>
@@ -149,7 +154,7 @@ function AddNewProduct({
                                             type="text"
                                             required
                                             defaultValue={
-                                                product && product.product_name
+                                                product && product.name
                                             }
                                             onChange={() => setError("")} // Clear error on input change
                                         />
@@ -179,7 +184,7 @@ function AddNewProduct({
                                             type="text"
                                             required
                                             defaultValue={
-                                                product && product.File_Location
+                                                product && product.file_location
                                             }
                                             onChange={() => setError("")}
                                         />

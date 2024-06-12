@@ -12,13 +12,17 @@ import {
 import { useMutation, useQuery } from "@tanstack/react-query";
 
 const emptySpec = {
-    product_specifications: "",
-    product_unit: "",
-    product_value: "",
+    name: "",
+    unit: "",
+    value: "",
 };
 
 function ProductDetails({ setWarningFor }) {
-    const { name, id, fileLocation } = useSelector((state) => state.product);
+    const {
+        name,
+        id: productId,
+        fileLocation,
+    } = useSelector((state) => state.product);
     const dispatch = useDispatch();
     const [error, setError] = useState("");
     const [secondaryFunctions, setSecondaryFunctions] = useState([]); // State to store secondary functions
@@ -38,40 +42,51 @@ function ProductDetails({ setWarningFor }) {
         setIsFirstMount(false);
     }, [setWarningFor]);
 
-    const { data: productFetched, isLoading: isFetchingProduct } = useQuery({
-        queryKey: ["product", id],
-        queryFn: () => getData(`/viewproduct/${encodeURIComponent(id)}`),
+    const {
+        data: productFetched,
+        isFetching: isFetchingProduct,
+        error: getProductError,
+    } = useQuery({
+        queryKey: ["product", productId],
+        queryFn: () => getData(`products/${encodeURIComponent(productId)}`),
         enabled: isFirstMount && !fileLocation,
     });
     useEffect(() => {
         if (productFetched) {
-            setFileLocationInput(productFetched.File_Location);
-            setMainFunction(productFetched.product_main_function);
+            setFileLocationInput(productFetched.file_location);
+            setMainFunction(productFetched.main_functions);
         }
     }, [productFetched]);
 
-    const { data: secFnsFetched, isLoading: isFetchingSecFns } = useQuery({
-        queryKey: ["productSecFns", id],
+    const { data: secFnsFetched, isFetching: isFetchingSecFns } = useQuery({
+        queryKey: ["productSecondaryFunctions", productId],
         queryFn: () =>
-            getData(`/viewproductsecondaryfn/${encodeURIComponent(id)}`),
+            getData(
+                `products/${encodeURIComponent(productId)}/secondary-functions`
+            ),
         enabled: !fileLocation,
     });
     useEffect(() => {
         if (secFnsFetched) setSecondaryFunctions(secFnsFetched);
     }, [secFnsFetched]);
 
-    const { data: specsFetched, isLoading: isFetchingSpecs } = useQuery({
-        queryKey: ["productSpecs", id],
-        queryFn: () => getData(`/viewproductspecs/${encodeURIComponent(id)}`),
+    const { data: specsFetched, isFetching: isFetchingSpecs } = useQuery({
+        queryKey: ["productSpecifications", productId],
+        queryFn: () =>
+            getData(`products/${encodeURIComponent(productId)}/specifications`),
         enabled: !fileLocation,
     });
     useEffect(() => {
         if (specsFetched) setSpecifications(specsFetched);
     }, [specsFetched]);
 
-    const { mutate: addProduct, isPending: isAddingProduct } = useMutation({
+    const {
+        mutate: addProduct,
+        isPending: isAddingProduct,
+        error: addProductError,
+    } = useMutation({
         mutationFn: (addRequestProductData) =>
-            sendData("/addproduct", "POST", addRequestProductData),
+            sendData("products", "POST", addRequestProductData),
         onSuccess: () => {
             queryClient.invalidateQueries({
                 queryKey: ["products"],
@@ -81,53 +96,69 @@ function ProductDetails({ setWarningFor }) {
                     name: nameRef.current.value,
                 })
             );
+            alert(`Saved successfully.`);
         },
     });
 
-    const { mutate: updateProduct, isPending: isUpdatingProduct } = useMutation(
-        {
-            mutationFn: (updateRequestProductData) =>
-                sendData(
-                    `/updateproduct/${encodeURIComponent(id)}`,
-                    "PUT",
-                    updateRequestProductData
-                ),
-            onSuccess: () => {
-                // queryClient.invalidateQueries({
-                //     queryKey: ["products"],
-                // });
-                dispatch(
-                    productActions.addProductDetails({
-                        name: nameRef.current.value,
-                    })
-                );
-            },
-        }
-    );
+    const {
+        mutate: updateProduct,
+        isPending: isUpdatingProduct,
+        error: updateProductError,
+    } = useMutation({
+        mutationFn: (updateRequestProductData) =>
+            sendData(
+                `products/${encodeURIComponent(productId)}`,
+                "PUT",
+                updateRequestProductData
+            ),
+        onSuccess: () => {
+            // queryClient.invalidateQueries({
+            //     queryKey: ["products"],
+            // });
+            dispatch(
+                productActions.addProductDetails({
+                    name: nameRef.current.value,
+                })
+            );
+            alert("Updated successfully.");
+        },
+    });
 
     const { mutate: addSecFn, isPending: isAddingSecFn } = useMutation({
         mutationFn: (addReqSecFnData) =>
-            sendData("/addproductsecondaryfn", "POST", addReqSecFnData),
+            sendData(
+                `products/${encodeURIComponent(productId)}/secondary-functions`,
+                "POST",
+                addReqSecFnData
+            ),
         onSuccess: () => {
             queryClient.invalidateQueries({
-                queryKey: ["productSecFns", id],
+                queryKey: ["productSecondaryFunctions", productId],
             });
         },
     });
 
     const { mutate: updateSecFn, isPending: isUpdatingSecFn } = useMutation({
-        mutationFn: ({ updateReqSecFnData, secFnId }) =>
+        mutationFn: ({ updateReqSecFnData, secondaryFunctionId }) =>
             sendData(
-                `/updateproductsecondaryfn/${encodeURIComponent(secFnId)}`,
+                `products/${encodeURIComponent(
+                    productId
+                )}/secondary-functions/${encodeURIComponent(
+                    secondaryFunctionId
+                )}`,
                 "PUT",
                 updateReqSecFnData
             ),
     });
 
     const { mutate: deleteSecFn, isPending: isDeletingSecFn } = useMutation({
-        mutationFn: (secFnId) =>
+        mutationFn: (secondaryFunctionId) =>
             deleteData(
-                `/deleteproductsecondaryfn/${encodeURIComponent(secFnId)}`
+                `products/${encodeURIComponent(
+                    productId
+                )}/secondary-functions/${encodeURIComponent(
+                    secondaryFunctionId
+                )}`
             ),
     });
 
@@ -138,7 +169,7 @@ function ProductDetails({ setWarningFor }) {
     const handleAddSecondary = () => {
         setSecondaryFunctions((prevState) => [
             ...prevState,
-            { product_sec_fn: "" },
+            { secondary_function: "" },
         ]); // Add a new empty secondary function to the state
         setError("");
     };
@@ -147,7 +178,7 @@ function ProductDetails({ setWarningFor }) {
             const updatedSecondaryFunctions = prevState.map((obj) => ({
                 ...obj,
             }));
-            updatedSecondaryFunctions[index].product_sec_fn = value;
+            updatedSecondaryFunctions[index].secondary_function = value;
             return updatedSecondaryFunctions;
         });
     };
@@ -165,7 +196,9 @@ function ProductDetails({ setWarningFor }) {
                 prevState.filter((_, index) => {
                     const selected = selectedRows.includes(index);
                     if (selected) {
-                        const id = secondaryFunctions[index].p_sec_fn_id;
+                        const id =
+                            secondaryFunctions[index]
+                                .product_secondary_function_id;
                         id &&
                             setToDeleteSecFns((prevState) => [
                                 ...prevState,
@@ -199,7 +232,9 @@ function ProductDetails({ setWarningFor }) {
         }
 
         // Check if Secondary Function is empty
-        if (secondaryFunctions.some((sf) => sf.product_sec_fn.trim() === "")) {
+        if (
+            secondaryFunctions.some((sf) => sf.secondary_function.trim() === "")
+        ) {
             errorMessage += "* Please enter all Secondary Functions.\n";
             isValid = false;
         }
@@ -214,29 +249,29 @@ function ProductDetails({ setWarningFor }) {
         // Perform validation
         if (validation()) {
             const updateRequestProductData = {
-                product_name: nameRef.current.value,
-                File_Location: fileLocationInput,
-                product_main_function: mainFunction,
+                name: nameRef.current.value,
+                fileLocation: fileLocationInput,
+                mainFunctions: mainFunction,
             };
             const addRequestProductData = {
+                productId,
                 ...updateRequestProductData,
-                product_id: id,
             };
             fileLocation
                 ? addProduct(addRequestProductData)
                 : updateProduct(updateRequestProductData);
             for (let secFn of secondaryFunctions) {
                 const updateReqSecFnData = {
-                    product_sec_fn: secFn.product_sec_fn,
+                    secondaryFunction: secFn.secondary_function,
                 };
                 const addReqSecFnData = {
                     ...updateReqSecFnData,
-                    product_id: id,
                 };
-                secFn.p_sec_fn_id
+                secFn.product_secondary_function_id
                     ? updateSecFn({
                           updateReqSecFnData,
-                          secFnId: secFn.p_sec_fn_id,
+                          secondaryFunctionId:
+                              secFn.product_secondary_function_id,
                       })
                     : addSecFn(addReqSecFnData);
             }
@@ -255,6 +290,9 @@ function ProductDetails({ setWarningFor }) {
             {isUpdatingProduct && <div>Updating product...</div>}
             {isUpdatingSecFn && <div>Updating secondary function...</div>}
             {isDeletingSecFn && <div>Deleting secondary function...</div>}
+            {addProductError && addProductError.message}
+            {updateProductError && updateProductError.message}
+            {getProductError && getProductError.message}
             <div aria-label="productAdded" className={styles.form}>
                 <div>
                     <table className={styles.table}>
@@ -290,7 +328,9 @@ function ProductDetails({ setWarningFor }) {
                                         <th className={styles.th}>
                                             Product ID
                                         </th>
-                                        <td className={styles.td}>{id}</td>
+                                        <td className={styles.td}>
+                                            {productId}
+                                        </td>
                                     </tr>
                                     <tr>
                                         <th className={styles.th}>
@@ -366,7 +406,7 @@ function ProductDetails({ setWarningFor }) {
                                                 }
                                             >
                                                 Secondary function {index + 1}
-                                                {secondaryFunction.product_sec_fn.trim() ===
+                                                {secondaryFunction.secondary_function.trim() ===
                                                     "" &&
                                                     error && (
                                                         <span
@@ -383,7 +423,7 @@ function ProductDetails({ setWarningFor }) {
                                                     type="text"
                                                     className={styles.input}
                                                     value={
-                                                        secondaryFunction.product_sec_fn
+                                                        secondaryFunction.secondary_function
                                                     }
                                                     onChange={(event) => {
                                                         handleSecondaryFunctionsChange(

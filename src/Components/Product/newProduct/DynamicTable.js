@@ -61,32 +61,28 @@ function DynamicTable({
             </thead>
             {!saveBtnClick && (
                 <tbody>
-                    {makeDataIterable(specifications, typeProduct).map(
-                        (row, rowIndex) => (
-                            <tr
-                                key={rowIndex}
-                                style={{
-                                    backgroundColor: selectedRows.includes(
-                                        rowIndex
-                                    )
-                                        ? "lightgray"
-                                        : "white",
-                                }}
+                    {makeDataIterable(specifications).map((row, rowIndex) => (
+                        <tr
+                            key={rowIndex}
+                            style={{
+                                backgroundColor: selectedRows.includes(rowIndex)
+                                    ? "lightgray"
+                                    : "white",
+                            }}
+                        >
+                            <th
+                                className={styles.th}
+                                onClick={() => toggleRowSelection(rowIndex)}
                             >
-                                <th
-                                    className={styles.th}
-                                    onClick={() => toggleRowSelection(rowIndex)}
-                                >
-                                    Specification {rowIndex + 1}
-                                </th>
-                                {row.map((cell, cellIndex) => (
-                                    <td className={styles.td} key={cellIndex}>
-                                        {renderCell(cell, rowIndex, cellIndex)}
-                                    </td>
-                                ))}
-                            </tr>
-                        )
-                    )}
+                                Specification {rowIndex + 1}
+                            </th>
+                            {row.map((cell, cellIndex) => (
+                                <td className={styles.td} key={cellIndex}>
+                                    {renderCell(cell, rowIndex, cellIndex)}
+                                </td>
+                            ))}
+                        </tr>
+                    ))}
                 </tbody>
             )}
         </table>

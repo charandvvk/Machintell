@@ -12,23 +12,23 @@ import {
 } from "../../../utils/http";
 
 const emptySpec = {
-    sub_assembly_specifications: "",
-    sub_assembly_unit: "",
-    sub_assembly_value: "",
+    name: "",
+    unit: "",
+    value: "",
 };
 
-const isParentOf = (items, id) =>
-    Object.values(items).find((value) => value.parent === id);
+const isParentOf = (items, subaassemblyId) =>
+    Object.values(items).find((value) => value.parent === subaassemblyId);
 
 function SubAssemblyDetails({ setWarningFor }) {
     const {
         id: productId,
         subassemblies,
         components,
-        currActive: id,
+        currActive: subassemblyId,
     } = useSelector((state) => state.product);
     const { name, isChildrenNeeded, fileLocation, isBoughtUp, parent } =
-        subassemblies[id];
+        subassemblies[subassemblyId];
     const dispatch = useDispatch();
     const [error, setError] = useState("");
     const [secondaryFunctions, setSecondaryFunctions] = useState([]);
@@ -50,34 +50,43 @@ function SubAssemblyDetails({ setWarningFor }) {
         setIsFirstMount(false);
     }, [setWarningFor]);
 
-    const { data: subassemblyFetched, isLoading: isFetchingSubassembly } =
+    const { data: subassemblyFetched, isFetching: isFetchingSubassembly } =
         useQuery({
-            queryKey: ["subassembly", id],
+            queryKey: ["subassembly", subassemblyId],
             queryFn: () =>
-                getData(`/viewsubassembly/${encodeURIComponent(id)}`),
+                getData(`subassemblies/${encodeURIComponent(subassemblyId)}`),
             enabled: isFirstMount && !fileLocation,
         });
     useEffect(() => {
         if (subassemblyFetched) {
             setFileLocationInput(subassemblyFetched.file_location);
-            setMainFunction(subassemblyFetched.subassembly_main_func);
+            setIsBoughtUpInput(subassemblyFetched.bought_up);
+            setMainFunction(subassemblyFetched.main_functions);
         }
     }, [subassemblyFetched]);
 
-    const { data: secFnsFetched, isLoading: isFetchingSecFns } = useQuery({
-        queryKey: ["subassemblySecFns", id],
+    const { data: secFnsFetched, isFetching: isFetchingSecFns } = useQuery({
+        queryKey: ["subassemblySecondaryFunctions", subassemblyId],
         queryFn: () =>
-            getData(`/viewsubassemblysecfn/${encodeURIComponent(id)}`),
+            getData(
+                `subassemblies/${encodeURIComponent(
+                    subassemblyId
+                )}/secondary-functions`
+            ),
         enabled: !fileLocation,
     });
     useEffect(() => {
         if (secFnsFetched) setSecondaryFunctions(secFnsFetched);
     }, [secFnsFetched]);
 
-    const { data: specsFetched, isLoading: isFetchingSpecs } = useQuery({
-        queryKey: ["subassemblySpecs", id],
+    const { data: specsFetched, isFetching: isFetchingSpecs } = useQuery({
+        queryKey: ["subassemblySpecifications", subassemblyId],
         queryFn: () =>
-            getData(`/viewsubassemblyspecifications/${encodeURIComponent(id)}`),
+            getData(
+                `subassemblies/${encodeURIComponent(
+                    subassemblyId
+                )}/specifications`
+            ),
         enabled: !fileLocation,
     });
     useEffect(() => {
@@ -86,9 +95,9 @@ function SubAssemblyDetails({ setWarningFor }) {
 
     const { mutate: updateSubassembly, isPending: isUpdatingSubassembly } =
         useMutation({
-            mutationFn: ({ updateRequestSubassemblyData, id }) =>
+            mutationFn: ({ updateRequestSubassemblyData, subassemblyId }) =>
                 sendData(
-                    `/updatesubassembly/${encodeURIComponent(id)}`,
+                    `subassemblies/${encodeURIComponent(subassemblyId)}`,
                     "PUT",
                     updateRequestSubassemblyData
                 ),
@@ -98,7 +107,7 @@ function SubAssemblyDetails({ setWarningFor }) {
                         name: nameRef.current.value,
                         isChildrenNeeded:
                             variables.updateRequestSubassemblyData
-                                .to_add_assemblies,
+                                .toAddChildren,
                         target: variables.target,
                     })
                 );
@@ -108,12 +117,12 @@ function SubAssemblyDetails({ setWarningFor }) {
     const { mutate: addSubassembly, isPending: isAddingSubassembly } =
         useMutation({
             mutationFn: (addRequestSubassemblyData) =>
-                sendData("/addsubassembly", "POST", addRequestSubassemblyData),
+                sendData("subassemblies", "POST", addRequestSubassemblyData),
             onSuccess: (_, variables) => {
                 dispatch(
                     productActions.addSubassemblyDetails({
                         name: nameRef.current.value,
-                        isChildrenNeeded: variables.to_add_assemblies,
+                        isChildrenNeeded: variables.toAddChildren,
                     })
                 );
                 if (
@@ -121,7 +130,7 @@ function SubAssemblyDetails({ setWarningFor }) {
                     subassemblies[parent].isChildrenNeeded === "Yes"
                 ) {
                     const updateRequestSubassemblyData = {
-                        to_add_assemblies: "added",
+                        toAddChildren: "added",
                     };
                     updateSubassembly({
                         updateRequestSubassemblyData,
@@ -134,18 +143,28 @@ function SubAssemblyDetails({ setWarningFor }) {
 
     const { mutate: addSecFn, isPending: isAddingSecFn } = useMutation({
         mutationFn: (addReqSecFnData) =>
-            sendData("/addsubassemblysecfn", "POST", addReqSecFnData),
+            sendData(
+                `subassemblies/${encodeURIComponent(
+                    subassemblyId
+                )}/secondary-functions`,
+                "POST",
+                addReqSecFnData
+            ),
         onSuccess: () => {
             queryClient.invalidateQueries({
-                queryKey: ["subassemblySecFns", id],
+                queryKey: ["subassemblySecondaryFunctions", subassemblyId],
             });
         },
     });
 
     const { mutate: updateSecFn, isPending: isUpdatingSecFn } = useMutation({
-        mutationFn: ({ updateReqSecFnData, secFnId }) => {
+        mutationFn: ({ updateReqSecFnData, secondaryFunctionId }) => {
             return sendData(
-                `/updatesubassemblysecfn/${encodeURIComponent(secFnId)}`,
+                `subassemblies/${encodeURIComponent(
+                    subassemblyId
+                )}/secondary-functions/${encodeURIComponent(
+                    secondaryFunctionId
+                )}`,
                 "PUT",
                 updateReqSecFnData
             );
@@ -153,9 +172,13 @@ function SubAssemblyDetails({ setWarningFor }) {
     });
 
     const { mutate: deleteSecFn, isPending: isDeletingSecFn } = useMutation({
-        mutationFn: (secFnId) =>
+        mutationFn: (secondaryFunctionId) =>
             deleteData(
-                `/deletesubassemblysecfn/${encodeURIComponent(secFnId)}`
+                `subassemblies/${encodeURIComponent(
+                    subassemblyId
+                )}/secondary-functions/${encodeURIComponent(
+                    secondaryFunctionId
+                )}`
             ),
     });
 
@@ -166,7 +189,7 @@ function SubAssemblyDetails({ setWarningFor }) {
     const handleAddSecondary = () => {
         setSecondaryFunctions((prevState) => [
             ...prevState,
-            { sub_secondary_functions_details: "" },
+            { secondary_function: "" },
         ]); // Add a new empty secondary function to the state
     };
 
@@ -175,8 +198,7 @@ function SubAssemblyDetails({ setWarningFor }) {
             const updatedSecondaryFunctions = prevState.map((obj) => ({
                 ...obj,
             }));
-            updatedSecondaryFunctions[index].sub_secondary_functions_details =
-                value;
+            updatedSecondaryFunctions[index].secondary_function = value;
             return updatedSecondaryFunctions;
         });
     };
@@ -194,12 +216,13 @@ function SubAssemblyDetails({ setWarningFor }) {
                 prevState.filter((_, index) => {
                     const selected = selectedRows.includes(index);
                     if (selected) {
-                        const id =
-                            secondaryFunctions[index].sub_sec_functions_id;
-                        id &&
+                        const subaassemblySecondaryFunctionId =
+                            secondaryFunctions[index]
+                                .subassembly_secondary_function_id;
+                        subaassemblySecondaryFunctionId &&
                             setToDeleteSecFns((prevState) => [
                                 ...prevState,
-                                id,
+                                subaassemblySecondaryFunctionId,
                             ]);
                     }
                     return !selected;
@@ -229,9 +252,7 @@ function SubAssemblyDetails({ setWarningFor }) {
 
         // Check if Secondary Function is empty
         if (
-            secondaryFunctions.some(
-                (sf) => sf.sub_secondary_functions_details.trim() === ""
-            )
+            secondaryFunctions.some((sf) => sf.secondary_function.trim() === "")
         ) {
             errorMessage += "Please enter  all Secondary Functions.\n";
             isValid = false;
@@ -246,48 +267,49 @@ function SubAssemblyDetails({ setWarningFor }) {
     const handleSave = () => {
         // Perform validation
         if (validation()) {
-            let to_add_assemblies = isChildrenNeededRef.current.value;
-            if (isChildrenNeeded === "No" && to_add_assemblies === "Yes")
-                to_add_assemblies =
-                    isParentOf(subassemblies, id) || isParentOf(components, id)
+            let toAddChildren = isChildrenNeededRef.current.value;
+            if (isChildrenNeeded === "No" && toAddChildren === "Yes")
+                toAddChildren =
+                    isParentOf(subassemblies, subassemblyId) ||
+                    isParentOf(components, subassemblyId)
                         ? "added"
                         : "Yes";
             const updateRequestSubassemblyData = {
-                subassembly_name: nameRef.current.value,
-                file_location: fileLocationInput,
-                subassembly_main_func: mainFunction,
-                sub_assembly_bought_up: isBoughtUpInput,
-                to_add_assemblies,
+                name: nameRef.current.value,
+                fileLocation: fileLocationInput,
+                boughtUp: isBoughtUpInput,
+                toAddChildren,
+                mainFunctions: mainFunction,
             };
             const addRequestSubassemblyData = {
+                subassemblyId,
+                productId,
+                parentId: parent,
                 ...updateRequestSubassemblyData,
-                sub_assembly_id: id,
-                product_id: productId,
-                parent_id: parent,
             };
             fileLocation
                 ? addSubassembly(addRequestSubassemblyData)
                 : updateSubassembly({
                       updateRequestSubassemblyData,
-                      id,
+                      subassemblyId,
                   });
             for (let secFn of secondaryFunctions) {
                 const updateReqSecFnData = {
-                    sub_secondary_functions_details:
-                        secFn.sub_secondary_functions_details,
+                    secondaryFunction: secFn.secondary_function,
                 };
                 const addReqSecFnData = {
                     ...updateReqSecFnData,
-                    sub_assembly_id: id,
                 };
-                secFn.sub_sec_functions_id
+                secFn.subassembly_secondary_function_id
                     ? updateSecFn({
                           updateReqSecFnData,
-                          secFnId: secFn.sub_sec_functions_id,
+                          secondaryFunctionId:
+                              secFn.subassembly_secondary_function_id,
                       })
                     : addSecFn(addReqSecFnData);
             }
-            for (let id of toDeleteSecFns) deleteSecFn(id);
+            for (let subaassemblyId of toDeleteSecFns)
+                deleteSecFn(subaassemblyId);
             setSavebtnClick(true);
         } else console.log("Validation failed");
     };
@@ -337,7 +359,9 @@ function SubAssemblyDetails({ setWarningFor }) {
                                         <th className={styles.th}>
                                             sub-assembly ID
                                         </th>
-                                        <td className={styles.td}>{id}</td>
+                                        <td className={styles.td}>
+                                            {subassemblyId}
+                                        </td>
                                     </tr>
                                     <tr>
                                         <th className={styles.th}>
@@ -450,7 +474,7 @@ function SubAssemblyDetails({ setWarningFor }) {
                                                     type="text"
                                                     className={styles.input}
                                                     value={
-                                                        secondaryFunctionState.sub_secondary_functions_details
+                                                        secondaryFunctionState.secondary_function
                                                     }
                                                     onChange={(event) =>
                                                         handleSecondaryFunctionsChange(

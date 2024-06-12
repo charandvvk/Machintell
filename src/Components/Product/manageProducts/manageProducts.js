@@ -11,10 +11,10 @@ const productCountPerPage = 10;
 
 const ManageProducts = ({ setWarningFor, productsFetched }) => {
     const dispatch = useDispatch();
-    const [selectedId, setSelectedId] = useState(null);
+    const [selectedProductId, setSelectedId] = useState(null);
     const [selectedAction, setSelectedAction] = useState(null);
     const selectedProduct = productsFetched.find(
-        (product) => product.product_id === selectedId
+        (product) => product.product_id === selectedProductId
     );
     const [currPageNumber, setCurrPageNumber] = useState(1);
     const beginIndex = (currPageNumber - 1) * productCountPerPage;
@@ -28,42 +28,42 @@ const ManageProducts = ({ setWarningFor, productsFetched }) => {
         setWarningFor(null);
     }, [setWarningFor]);
 
-    const { mutate: deleteProduct, isPending: isDeletingProduct } = useMutation(
-        {
-            mutationFn: () =>
-                deleteData(`/deleteproduct/${encodeURIComponent(selectedId)}`),
-            onSuccess: () => {
-                queryClient.invalidateQueries({
-                    queryKey: ["products"],
-                });
-                if (productsFetched.length === 1)
-                    dispatch(productActions.setCurrForm(null));
-                if (displayedProducts.length === 1)
-                    setCurrPageNumber((prevState) => prevState - 1);
-            },
-        }
-    );
+    const {
+        mutate: deleteProduct,
+        isPending: isDeletingProduct,
+        error: deleteProductError,
+    } = useMutation({
+        mutationFn: () =>
+            deleteData(`products/${encodeURIComponent(selectedProductId)}`),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: ["products"],
+            });
+            if (productsFetched.length === 1)
+                dispatch(productActions.setCurrForm(null));
+            if (displayedProducts.length === 1)
+                setCurrPageNumber((prevState) => prevState - 1);
+            alert("Deleted successfully.");
+        },
+    });
 
     const {
         data: productTreeFetched,
-        isLoading: isFetchingProductTree,
+        isFetching: isFetchingProductTree,
         refetch: viewProductTree,
+        error: getProductTreeError,
     } = useQuery({
-        queryKey: ["productTree", selectedId],
-        queryFn: () => {
-            return getData(
-                `/viewproducttree/${encodeURIComponent(selectedId)}`
-            );
-        },
+        queryKey: ["tree", selectedProductId],
+        queryFn: () =>
+            getData(`products/${encodeURIComponent(selectedProductId)}/trees`),
         enabled: false,
     });
-
     useEffect(() => {
         if (productTreeFetched) {
             dispatch(productActions.set(productTreeFetched));
-            queryClient.removeQueries(["productTree", selectedId]);
+            queryClient.removeQueries(["productTree", selectedProductId]);
         }
-    }, [productTreeFetched, dispatch, selectedId]);
+    }, [productTreeFetched, dispatch, selectedProductId]);
 
     const handleConfirm = () => {
         if (selectedAction === "edit") {
@@ -80,7 +80,9 @@ const ManageProducts = ({ setWarningFor, productsFetched }) => {
     return (
         <>
             {isFetchingProductTree && "Loading product tree..."}
-            {isDeletingProduct && `Deleting ${selectedProduct.product_name}...`}
+            {isDeletingProduct && `Deleting ${selectedProduct.name}...`}
+            {deleteProductError && deleteProductError.message}
+            {getProductTreeError && getProductTreeError.message}
             {selectedAction ? (
                 selectedAction === "confirmDuplicate" ? (
                     <AddNewProduct
@@ -93,7 +95,7 @@ const ManageProducts = ({ setWarningFor, productsFetched }) => {
                     <div className={classes.modal}>
                         <div>
                             Do you want to {selectedAction}{" "}
-                            {selectedProduct.product_name}?
+                            {selectedProduct.name}?
                         </div>
                         <div className={classes.actions}>
                             <button onClick={() => setSelectedAction(null)}>
@@ -116,12 +118,12 @@ const ManageProducts = ({ setWarningFor, productsFetched }) => {
                                 className={`${classes.product} ${
                                     classes.cursor
                                 } ${
-                                    selectedId === product.product_id
+                                    selectedProductId === product.product_id
                                         ? classes.active
                                         : classes.background
                                 }`}
                             >
-                                {product.product_name}
+                                {product.name}
                             </div>
                         ))}
                     </div>
@@ -135,19 +137,19 @@ const ManageProducts = ({ setWarningFor, productsFetched }) => {
                     <div className={classes.actions}>
                         <button
                             onClick={() => setSelectedAction("edit")}
-                            disabled={!selectedId}
+                            disabled={!selectedProductId}
                         >
                             Edit
                         </button>
                         <button
                             onClick={() => setSelectedAction("duplicate")}
-                            disabled={!selectedId}
+                            disabled={!selectedProductId}
                         >
                             Duplicate
                         </button>
                         <button
                             onClick={() => setSelectedAction("delete")}
-                            disabled={!selectedId}
+                            disabled={!selectedProductId}
                         >
                             Delete
                         </button>

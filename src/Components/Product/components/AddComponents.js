@@ -23,36 +23,44 @@ function AddComponents({ setWarningFor }) {
     const parentId = currActive.startsWith("c")
         ? components[currActive].parent
         : null;
+    const parent = parentId
+        ? parentId.startsWith("p")
+            ? "products"
+            : "subassemblies"
+        : null;
 
-    const { data: componentsFetched, isLoading: isFetchingComponents } =
+    const { data: componentsFetched, isFetching: isFetchingComponents } =
         useQuery({
             queryKey: ["components", parentId],
             queryFn: () =>
-                getData(`/viewcomponents/${encodeURIComponent(parentId)}`),
+                getData(`${parent}/${encodeURIComponent(parentId)}/components`),
             enabled: currActive.startsWith("c"),
         });
     useEffect(() => {
         if (componentsFetched) {
             setComponentsState(
                 componentsFetched.map((component, index) => {
-                    if (component.comp_id === currActive)
+                    const componentIdKey = `${
+                        parentId.startsWith("p") ? "product" : "subassembly"
+                    }_component_id`;
+                    if (component[componentIdKey] === currActive)
                         setCurrActivePos(index);
                     return [
-                        component.item_name,
-                        component.comp_id,
+                        component.name,
+                        component[componentIdKey],
                         component.bought_up,
-                        component.comp_file_location,
+                        component.file_location,
                     ];
                 })
             );
         }
-    }, [componentsFetched, currActive]);
+    }, [componentsFetched, currActive, parentId]);
 
     const { mutate: updateSubassembly, isPending: isUpdatingSubassembly } =
         useMutation({
             mutationFn: (updateRequestSubassemblyData) =>
                 sendData(
-                    `/updatesubassembly/${encodeURIComponent(currActive)}`,
+                    `subassemblies/${encodeURIComponent(currActive)}`,
                     "PUT",
                     updateRequestSubassemblyData
                 ),
@@ -67,12 +75,18 @@ function AddComponents({ setWarningFor }) {
 
     const { mutate: addComponent, isPending: isAddingComponent } = useMutation({
         mutationFn: (addReqComponentData) =>
-            sendData("/addcomponents", "POST", addReqComponentData),
+            sendData(
+                `${
+                    currActive.startsWith("p") ? "products" : "subassemblies"
+                }/${encodeURIComponent(currActive)}/components`,
+                "POST",
+                addReqComponentData
+            ),
         onSuccess: (_, variables) => {
             dispatch(
                 productActions.addComponent({
-                    id: variables.comp_id,
-                    name: variables.item_name,
+                    id: variables.componentId,
+                    name: variables.name,
                 })
             );
             if (
@@ -80,7 +94,7 @@ function AddComponents({ setWarningFor }) {
                 subassemblies[currActive].isChildrenNeeded === "Yes"
             ) {
                 const updateRequestSubassemblyData = {
-                    to_add_assemblies: "added",
+                    toAddChildren: "added",
                 };
                 updateSubassembly(updateRequestSubassemblyData);
             }
@@ -91,15 +105,17 @@ function AddComponents({ setWarningFor }) {
         useMutation({
             mutationFn: (updateReqComponentData) =>
                 sendData(
-                    `/updatecomponents/${encodeURIComponent(currActive)}`,
+                    `${parent}/${encodeURIComponent(
+                        parentId
+                    )}/components/${encodeURIComponent(currActive)}`,
                     "PUT",
                     updateReqComponentData
                 ),
             onSuccess: (_, variables) => {
                 dispatch(
                     productActions.addComponent({
-                        id: variables.comp_id,
-                        name: variables.item_name,
+                        id: variables.componentId,
+                        name: variables.name,
                     })
                 );
             },
@@ -151,20 +167,19 @@ function AddComponents({ setWarningFor }) {
             if (currActive.startsWith("c")) {
                 const component = componentsState[currActivePos];
                 const updateReqComponentData = {
-                    item_name: component[0],
-                    bought_up: component[2],
-                    comp_file_location: component[3],
+                    name: component[0],
+                    boughtUp: component[2],
+                    fileLocation: component[3],
                 };
                 updateComponent(updateReqComponentData);
             } else {
                 for (let component of componentsState) {
                     const addReqComponentData = {
-                        item_name: component[0],
-                        comp_id: component[1],
-                        bought_up: component[2],
-                        comp_file_location: component[3],
-                        parent_id: currActive,
-                        product_id: id,
+                        componentId: component[1],
+                        productId: id,
+                        name: component[0],
+                        boughtUp: component[2],
+                        fileLocation: component[3],
                     };
                     addComponent(addReqComponentData);
                 }

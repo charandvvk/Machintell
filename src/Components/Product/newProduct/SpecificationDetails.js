@@ -5,20 +5,8 @@ import { useSelector } from "react-redux";
 import { deleteData, queryClient, sendData } from "../../../utils/http";
 import { useMutation } from "@tanstack/react-query";
 
-const makeDataIterable = (specifications, typeProduct) => {
-    return specifications.map((spec) =>
-        typeProduct
-            ? [
-                  spec.product_specifications,
-                  spec.product_unit,
-                  spec.product_value,
-              ]
-            : [
-                  spec.sub_assembly_specifications,
-                  spec.sub_assembly_unit,
-                  spec.sub_assembly_value,
-              ]
-    );
+const makeDataIterable = (specifications) => {
+    return specifications.map((spec) => [spec.name, spec.unit, spec.value]);
 };
 
 function SpecificationDetails({
@@ -30,59 +18,45 @@ function SpecificationDetails({
     const [error, seterror] = useState("");
     const { currActive } = useSelector((state) => state.product);
     const typeProduct = currActive.startsWith("p");
+    const parent = typeProduct ? "products" : "subassemblies";
     const [specificationsState, setSpecificationsState] =
         useState(specifications);
     const [saveBtnClick, setSavebtnClick] = useState(
-        specifications.length === 1 &&
-            !specifications[0].product_unit &&
-            !specifications[0].sub_assembly_unit
-            ? false
-            : true
+        specifications.length === 1 && !specifications[0].unit ? false : true
     ); // State to track save button click
     const [toDeleteSpecs, setToDeleteSpecs] = useState([]);
 
     const { mutate: addSpec, isPending: isAddingSpec } = useMutation({
         mutationFn: (addReqSpecData) =>
             sendData(
-                `/${
-                    typeProduct
-                        ? "addproductspecs"
-                        : "addsubassemblyspecifications"
-                }`,
+                `${parent}/${encodeURIComponent(currActive)}/specifications`,
                 "POST",
                 addReqSpecData
             ),
         onSuccess: () => {
             queryClient.invalidateQueries({
-                queryKey: [
-                    typeProduct ? "productSpecs" : "subassemblySpecs",
-                    currActive,
-                ],
+                queryKey: [`${parent}Specifications`, currActive],
             });
         },
     });
 
     const { mutate: updateSpec, isPending: isUpdatingSpec } = useMutation({
-        mutationFn: ({ updateReqSpecData, specId }) =>
+        mutationFn: ({ updateReqSpecData, specificationId }) =>
             sendData(
-                `/${
-                    typeProduct
-                        ? "updateproductspecs"
-                        : "updatesubassemblyspecifications"
-                }/${encodeURIComponent(specId)}`,
+                `${parent}/${encodeURIComponent(
+                    currActive
+                )}/specifications/${encodeURIComponent(specificationId)}`,
                 "PUT",
                 updateReqSpecData
             ),
     });
 
     const { mutate: deleteSpec, isPending: isDeletingSpec } = useMutation({
-        mutationFn: (specId) =>
+        mutationFn: (specificationId) =>
             deleteData(
-                `/${
-                    typeProduct
-                        ? "deleteproductspecs"
-                        : "deletesubassemblyspecifications"
-                }/${encodeURIComponent(specId)}`
+                `${parent}/${encodeURIComponent(
+                    currActive
+                )}/specifications/${encodeURIComponent(specificationId)}`
             ),
     });
 
@@ -91,10 +65,10 @@ function SpecificationDetails({
             const updatedSpecificationsState = prevState.map(
                 (specification) => ({ ...specification })
             );
-            let key = typeProduct ? "product" : "sub_assembly";
-            if (!cellIndex) key += "_specifications";
-            else if (cellIndex === 1) key += "_unit";
-            else key += "_value";
+            let key;
+            if (!cellIndex) key = "name";
+            else if (cellIndex === 1) key = "unit";
+            else key = "value";
             updatedSpecificationsState[rowIndex][key] = value;
             return updatedSpecificationsState;
         });
@@ -120,9 +94,9 @@ function SpecificationDetails({
                 if (selected) {
                     const id =
                         specificationsState[index][
-                            typeProduct
-                                ? "product_specs_id"
-                                : "sub_assembly_specs_id"
+                            `${
+                                typeProduct ? "product" : "subassembly"
+                            }_specification_id`
                         ];
                     id && setToDeleteSpecs((prevState) => [...prevState, id]);
                 }
@@ -144,7 +118,7 @@ function SpecificationDetails({
         let isValid = true;
         let errorMessage = "";
         if (
-            makeDataIterable(specificationsState, typeProduct).some((row) =>
+            makeDataIterable(specificationsState).some((row) =>
                 row.some((sp) => sp.trim() === "")
             )
         ) {
@@ -158,25 +132,23 @@ function SpecificationDetails({
     const handleSave = async () => {
         if (validation()) {
             for (let spec of specificationsState) {
-                const type = typeProduct ? "product" : "sub_assembly";
+                const type = typeProduct ? "product" : "subassembly";
                 const updateReqSpecData = {
-                    [`${type}_specs`]: spec[`${type}_specifications`],
-                    [`${type}_unit`]: spec[`${type}_unit`],
-                    [`${type}_value`]: spec[`${type}_value`],
+                    name: spec.name,
+                    unit: spec.unit,
+                    value: spec.value,
                 };
                 const addReqSpecData = {
                     ...updateReqSpecData,
-                    [`${type}_id`]: currActive,
                 };
-                spec[`${type}_specs_id`]
+                spec[`${type}_specification_id`]
                     ? updateSpec({
                           updateReqSpecData,
-                          specId: spec[`${type}_specs_id`],
+                          specificationId: spec[`${type}_specification_id`],
                       })
                     : addSpec(addReqSpecData);
             }
             for (let id of toDeleteSpecs) deleteSpec(id);
-            // dispatch(productActions.setCurrForm("DialogBox"));
             if (!specificationsState.length) setSpecifications([]);
             setSavebtnClick(true);
         } else {
@@ -222,8 +194,7 @@ function SpecificationDetails({
                             onClick={handleSave}
                         >
                             {specifications.length === 1 &&
-                            !specifications[0].product_unit &&
-                            !specifications[0].sub_assembly_unit
+                            !specifications[0].unit
                                 ? "Save"
                                 : "Update"}
                         </button>
