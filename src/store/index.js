@@ -102,10 +102,14 @@ const productSlice = createSlice({
         reset(state) {
             Object.assign(state, JSON.parse(JSON.stringify(initialState)));
         },
-        set(state, { payload }) {
+        setTree(state, { payload }) {
             const product = JSON.parse(JSON.stringify(payload));
             product.currActive = "";
             product.currForm = "";
+            Object.assign(state, product);
+        },
+        setChart(state, { payload }) {
+            const product = JSON.parse(JSON.stringify(payload));
             Object.assign(state, product);
         },
     },

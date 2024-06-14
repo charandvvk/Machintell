@@ -12,6 +12,7 @@ import SubAssemblyDetails from "./subAssembly/subAssemblyDetails";
 import { deleteData, getData } from "../../utils/http";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import Dashboard from "./Dashboard";
+import Chart from "./Chart";
 
 const Product = () => {
     const product = useSelector((state) => state.product);
@@ -114,8 +115,10 @@ const Product = () => {
     function displayForm() {
         if (currForm === "newProduct")
             return <AddNewProduct setWarningFor={setWarningFor} />;
-        else if (currForm === "dashboard")
+        else if (currForm === "dashboard") {
             return <Dashboard setWarningFor={setWarningFor} />;
+        } else if (currForm === "chart")
+            return <Chart setWarningFor={setWarningFor} />;
         else if (currForm === "manageProducts")
             return (
                 <ManageProducts
@@ -257,15 +260,12 @@ const Product = () => {
                         <button
                             type="button"
                             className={`${styles.btn} ${
-                                currForm === "tree" && styles.active
+                                currForm === "chart" && styles.active
                             }`}
                             onClick={() => {
-                                handleToggleFormType("components");
+                                handleToggleFormType("chart");
                             }}
-                            disabled={
-                                isDisabled ||
-                                (currForm === "components" && warningFor)
-                            }
+                            disabled={!currActive.startsWith("t")}
                         >
                             Product tree
                         </button>
@@ -278,12 +278,14 @@ const Product = () => {
                     <div
                         className={`${styles.leftcol} ${
                             currForm !== "dashboard" &&
+                            currForm !== "chart" &&
                             currForm !== "tree" &&
                             `${styles["leftcol-width"]} ${styles["border-right"]}`
                         }`}
                     >
                         {name &&
                             currForm !== "dashboard" &&
+                            currForm !== "chart" &&
                             currForm !== "tree" && <Tree />}
                     </div>
                     <div

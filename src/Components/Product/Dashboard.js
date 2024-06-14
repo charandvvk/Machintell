@@ -2,9 +2,12 @@ import { useQuery } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 import { getData } from "../../utils/http";
 import classes from "./product.module.css";
+import { useDispatch } from "react-redux";
+import { productActions } from "../../store";
 
 function Dashboard({ setWarningFor }) {
-    const [selectedId, setSelectedId] = useState(null);
+    const [selectedId, setSelectedId] = useState("");
+    const dispatch = useDispatch();
 
     const {
         data: productsTreesFetched,
@@ -17,8 +20,22 @@ function Dashboard({ setWarningFor }) {
     });
 
     useEffect(() => {
+        dispatch(productActions.setActive(""));
+    }, []);
+
+    useEffect(() => {
         setWarningFor(null);
     }, [setWarningFor]);
+
+    const handleClickProduct = (id) => {
+        setSelectedId(id);
+        dispatch(productActions.setActive(`t${id}`));
+        dispatch(
+            productActions.setChart(
+                productsTreesFetched.filter((tree) => tree.id === id)[0]
+            )
+        );
+    };
 
     return (
         <>
@@ -32,7 +49,7 @@ function Dashboard({ setWarningFor }) {
                     <div className={classes.card} key={product.id}>
                         <div
                             key={product.id}
-                            onClick={() => setSelectedId(product.id)}
+                            onClick={() => handleClickProduct(product.id)}
                             className={`${classes.product} ${classes.cursor} ${
                                 selectedId === product.id
                                     ? classes.active
