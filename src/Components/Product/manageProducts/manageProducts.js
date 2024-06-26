@@ -61,7 +61,7 @@ const ManageProducts = ({ setWarningFor, productsFetched }) => {
     useEffect(() => {
         if (productTreeFetched) {
             dispatch(productActions.setTree(productTreeFetched));
-            queryClient.removeQueries(["productTree", selectedProductId]);
+            queryClient.removeQueries(["tree", selectedProductId]);
         }
     }, [productTreeFetched, dispatch, selectedProductId]);
 

@@ -21,7 +21,7 @@ function Dashboard({ setWarningFor }) {
 
     useEffect(() => {
         dispatch(productActions.setActive(""));
-    }, []);
+    }, [dispatch]);
 
     useEffect(() => {
         setWarningFor(null);
